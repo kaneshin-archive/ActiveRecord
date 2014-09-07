@@ -131,11 +131,17 @@ public class Driver {
         return results
     }
     
+    private func delete(object: NSManagedObject, context: NSManagedObjectContext? = nil) {
+        if let moc = (context != nil ? context! : self.managedObjectContext) {
+            moc.deleteObject(object)
+        }
+    }
+    
     private func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) {
         if let moc = (context != nil ? context! : self.managedObjectContext) {
             if let objects = read(entityName, predicate: predicate, context: moc) as? [NSManagedObject] {
                 for object: NSManagedObject in objects {
-                    moc.deleteObject(object)
+                    delete(object)
                 }
             }
         }
@@ -156,6 +162,10 @@ extension Driver: Printable {
 
 public func setup(storeName: String) {
     Driver.sharedInstance.setup(storeName)
+}
+
+public func managedObjectContext() -> NSManagedObjectContext? {
+    return Driver.sharedInstance.managedObjectContext
 }
 
 // MARK: - Active Record
@@ -179,6 +189,10 @@ public func findFirst(entityName: String, predicate: NSPredicate? = nil) -> AnyO
     return nil
 }
 
+public func delete(object: NSManagedObject) {
+    Driver.sharedInstance.delete(object, context: object.managedObjectContext)
+}
+
 public func delete(entityName: String) {
     Driver.sharedInstance.delete(entityName)
 }
@@ -187,6 +201,6 @@ public func delete(entityName: String, predicate: NSPredicate? = nil) {
     Driver.sharedInstance.delete(entityName, predicate: predicate)
 }
 
-public func save () {
-    Driver.sharedInstance.save()
+public func save(context: NSManagedObjectContext? = nil) {
+    Driver.sharedInstance.save(context: context)
 }
