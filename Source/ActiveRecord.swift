@@ -23,7 +23,7 @@
 import Foundation
 import CoreData
 
-// MARK: - CoreData driver
+// MARK: - Core Data driver
 
 public class Driver {
     
@@ -57,7 +57,7 @@ public class Driver {
         self.storeName = storeName
     }
     
-    // MARK: - CoreData stack
+    // MARK: - Core Data stack
     
     lazy var applicationDocumentsDirectory: NSURL = {
         let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
@@ -87,7 +87,7 @@ public class Driver {
         return coordinator
     }()
     
-    lazy var managedObjectContext: NSManagedObjectContext? = {
+    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
             return nil
@@ -97,20 +97,10 @@ public class Driver {
         return managedObjectContext
     }()
     
-    // MARK: - CoreData Saving
-
-    private func save (context: NSManagedObjectContext? = nil) {
-        if let moc = (context != nil ? context! : self.managedObjectContext) {
-            var error: NSError? = nil
-            if moc.hasChanges && !moc.save(&error) {
-            }
-        }
-    }
-    
     // MARK: - CRUD
     
     private func create(entityName: String, context: NSManagedObjectContext? = nil) -> AnyObject? {
-        if let moc = (context != nil ? context! : self.managedObjectContext) {
+        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
             return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: moc) as AnyObject?
         }
         return nil
@@ -118,7 +108,7 @@ public class Driver {
     
     private func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) -> [AnyObject]? {
         var results: [AnyObject]? = nil
-        if let moc = (context != nil ? context! : self.managedObjectContext) {
+        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
             var error: NSError? = nil
             var request = NSFetchRequest(entityName: entityName)
             if predicate != nil {
@@ -131,14 +121,22 @@ public class Driver {
         return results
     }
     
+    private func save (context: NSManagedObjectContext? = nil) {
+        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
+            var error: NSError? = nil
+            if moc.hasChanges && !moc.save(&error) {
+            }
+        }
+    }
+    
     private func delete(object: NSManagedObject, context: NSManagedObjectContext? = nil) {
-        if let moc = (context != nil ? context! : self.managedObjectContext) {
+        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
             moc.deleteObject(object)
         }
     }
     
     private func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) {
-        if let moc = (context != nil ? context! : self.managedObjectContext) {
+        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
             if let objects = read(entityName, predicate: predicate, context: moc) as? [NSManagedObject] {
                 for object: NSManagedObject in objects {
                     delete(object)
@@ -165,7 +163,7 @@ public func setup(storeName: String) {
 }
 
 public func managedObjectContext() -> NSManagedObjectContext? {
-    return Driver.sharedInstance.managedObjectContext
+    return Driver.sharedInstance.defaultManagedObjectContext
 }
 
 // MARK: - Active Record
