@@ -23,11 +23,11 @@
 import UIKit
 
 class DetailViewController: UIViewController {
-                            
+
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
 
-    var eventItem: Event? {
+    var event: Event? {
         didSet {
             // Update the view.
             self.configureView()
@@ -36,7 +36,7 @@ class DetailViewController: UIViewController {
 
     func configureView() {
         // Update the user interface for the detail item.
-        if let event = self.eventItem as Event? {
+        if let event = self.event {
             if let label = self.detailDescriptionLabel {
                 label.text = event.timeStamp.description
             }

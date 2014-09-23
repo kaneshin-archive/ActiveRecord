@@ -26,6 +26,18 @@ import ActiveRecord
 
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
+    var detailViewController: DetailViewController? = nil
+    var managedObjectContext: NSManagedObjectContext? = nil
+
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        if UIDevice.currentDevice().userInterfaceIdiom == .Pad {
+            self.clearsSelectionOnViewWillAppear = false
+            self.preferredContentSize = CGSize(width: 320.0, height: 600.0)
+        }
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -33,13 +45,20 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
         let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
         self.navigationItem.rightBarButtonItem = addButton
+        if let split = self.splitViewController {
+            let controllers = split.viewControllers
+            self.detailViewController = controllers[controllers.count-1].topViewController as? DetailViewController
+        }
     }
 
     func insertNewObject(sender: AnyObject) {
-        if var event = Event.create() as Event? {
-            event.timeStamp = NSDate.date()
-            event.save()
-        }
+        let context = self.fetchedResultsController.managedObjectContext
+        let entity = self.fetchedResultsController.fetchRequest.entity
+        
+        let event = ActiveRecord.create(entity.name, context: context) as Event
+        event.timeStamp = NSDate()
+
+        ActiveRecord.save(context: context)
     }
 
     // MARK: - Segues
@@ -48,7 +67,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         if segue.identifier == "showDetail" {
             if let indexPath = self.tableView.indexPathForSelectedRow() {
             let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
-                (segue.destinationViewController as DetailViewController).eventItem = event
+                let controller = (segue.destinationViewController as UINavigationController).topViewController as DetailViewController
+                controller.event = event
+                controller.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
+                controller.navigationItem.leftItemsSupplementBackButton = true
             }
         }
     }
@@ -71,14 +93,16 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     }
 
     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        // Return false if you do not want the specified item to be editable.
         return true
     }
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
-            let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
-            event.delete()
-            event.save()
+            if let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event? {
+                ActiveRecord.delete(event)
+                ActiveRecord.save(context: event.managedObjectContext)
+            }
         }
     }
 
@@ -98,7 +122,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         // Edit the entity name as appropriate.
         let entity = NSEntityDescription.entityForName(Event.entityName(), inManagedObjectContext: ActiveRecord.managedObjectContext()!)
         fetchRequest.entity = entity
-
+        
         // Set the batch size to a suitable number.
         fetchRequest.fetchBatchSize = 20
         
@@ -116,8 +140,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
     	var error: NSError? = nil
     	if !_fetchedResultsController!.performFetch(&error) {
-            println("Unresolved error \(error), \(error?.userInfo)")
-            abort()
+    	     // Replace this implementation with code to handle the error appropriately.
+    	     // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development. 
+             //println("Unresolved error \(error), \(error.userInfo)")
+    	     abort()
     	}
         
         return _fetchedResultsController!

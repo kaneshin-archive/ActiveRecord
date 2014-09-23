@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Example.xcodeproj">
+      location = "group:Examples/Example-Swift/Example-Swift.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:ActiveRecord.xcodeproj">

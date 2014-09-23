@@ -1,4 +1,4 @@
-// AppDelegate.swift
+// Manager.swift
 //
 // Copyright (c) 2014 Shintaro Kaneko (http://kaneshinth.com)
 //
@@ -20,21 +20,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import UIKit
-import ActiveRecord
+import Foundation
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-                            
-    var window: UIWindow?
+class Manager: NSObject {
 
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        return true
+    class var sharedInstance: Manager {
+        struct Singleton {
+            static let instance = Manager()
+        }
+        return Singleton.instance
     }
-
-    func applicationWillTerminate(application: UIApplication) {
-        ActiveRecord.save()
+    
+    private var storeName: String? = nil
+    private var automaticallyDeleteStoreOnMismatch: Bool = true
+    
+    lazy var defaultStoreName: String = {
+        var defaultName: String? = nil
+        if self.storeName != nil && self.storeName != "" {
+            defaultName = self.storeName!
+        } else {
+            defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
+            if defaultName == nil {
+                defaultName = "DefaultStore.sqlite"
+            }
+        }
+        if !defaultName!.hasSuffix("sqlite") {
+            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
+        }
+        return defaultName!
+        }()
+    
+    func setup(storeName: String) {
+        self.storeName = storeName
     }
-
+    
+    
 }
-

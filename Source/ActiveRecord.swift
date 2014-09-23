@@ -25,142 +25,142 @@ import CoreData
 
 // MARK: - Core Data driver
 
-public class Driver {
-    
-    public class var sharedInstance: Driver {
-        struct Singleton {
-            static let instance = Driver()
-        }
-        return Singleton.instance
-    }
-    
-    private var storeName: String? = nil
-    private var automaticallyDeleteStoreOnMismatch: Bool = true
-
-    lazy var defaultStoreName: String = {
-        var defaultName: String? = nil
-        if self.storeName != nil && self.storeName != "" {
-            defaultName = self.storeName!
-        } else {
-            defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
-            if defaultName == nil {
-                defaultName = "DefaultStore.sqlite"
-            }
-        }
-        if !defaultName!.hasSuffix("sqlite") {
-            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
-        }
-        return defaultName!
-    }()
-
-    public func setup(storeName: String) {
-        self.storeName = storeName
-    }
-    
-    // MARK: - Core Data stack
-    
-    lazy var applicationDocumentsDirectory: NSURL = {
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls.last as NSURL
-    }()
-    
-    lazy var storeURL: NSURL = {
-        return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
-    }()
-    
-    lazy var managedObjectModel: NSManagedObjectModel = {
-        return NSManagedObjectModel.mergedModelFromBundles(nil)
-    }()
-    
-    lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator? = {
-        var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
-        let url = self.storeURL
-        var error: NSError? = nil
-        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-            if self.automaticallyDeleteStoreOnMismatch {
-                NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
-                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-                    coordinator = nil
-                }
-            }
-        }
-        return coordinator
-    }()
-    
-    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext()
-        managedObjectContext.persistentStoreCoordinator = coordinator
-        return managedObjectContext
-    }()
-    
-    // MARK: - CRUD
-    
-    private func create(entityName: String, context: NSManagedObjectContext? = nil) -> AnyObject? {
-        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
-            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: moc) as AnyObject?
-        }
-        return nil
-    }
-    
-    private func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) -> [AnyObject]? {
-        var results: [AnyObject]? = nil
-        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
-            var error: NSError? = nil
-            var request = NSFetchRequest(entityName: entityName)
-            if predicate != nil {
-                request.predicate = predicate
-            }
-            results = moc.executeFetchRequest(request, error: &error)
-            if results == nil {
-            }
-        }
-        return results
-    }
-    
-    private func save (context: NSManagedObjectContext? = nil) {
-        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
-            var error: NSError? = nil
-            if moc.hasChanges && !moc.save(&error) {
-            }
-        }
-    }
-    
-    private func delete(object: NSManagedObject, context: NSManagedObjectContext? = nil) {
-        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
-            moc.deleteObject(object)
-        }
-    }
-    
-    private func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) {
-        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
-            if let objects = read(entityName, predicate: predicate, context: moc) as? [NSManagedObject] {
-                for object: NSManagedObject in objects {
-                    delete(object)
-                }
-            }
-        }
-    }
-    
-}
+//public class Driver {
+//    
+//    public class var sharedInstance: Driver {
+//        struct Singleton {
+//            static let instance = Driver()
+//        }
+//        return Singleton.instance
+//    }
+//    
+//    private var storeName: String? = nil
+//    private var automaticallyDeleteStoreOnMismatch: Bool = true
+//
+//    lazy var defaultStoreName: String = {
+//        var defaultName: String? = nil
+//        if self.storeName != nil && self.storeName != "" {
+//            defaultName = self.storeName!
+//        } else {
+//            defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
+//            if defaultName == nil {
+//                defaultName = "DefaultStore.sqlite"
+//            }
+//        }
+//        if !defaultName!.hasSuffix("sqlite") {
+//            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
+//        }
+//        return defaultName!
+//    }()
+//
+//    public func setup(storeName: String) {
+//        self.storeName = storeName
+//    }
+//    
+//    // MARK: - Core Data stack
+//    
+//    lazy var applicationDocumentsDirectory: NSURL = {
+//        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
+//        return urls.last as NSURL
+//    }()
+//    
+//    lazy var storeURL: NSURL = {
+//        return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
+//    }()
+//    
+//    lazy var managedObjectModel: NSManagedObjectModel = {
+//        return NSManagedObjectModel.mergedModelFromBundles(nil)
+//    }()
+//    
+//    lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator? = {
+//        var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
+//        let url = self.storeURL
+//        var error: NSError? = nil
+//        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+//            if self.automaticallyDeleteStoreOnMismatch {
+//                NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
+//                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+//                    coordinator = nil
+//                }
+//            }
+//        }
+//        return coordinator
+//    }()
+//    
+//    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
+//        let coordinator = self.persistentStoreCoordinator
+//        if coordinator == nil {
+//            return nil
+//        }
+//        var managedObjectContext = NSManagedObjectContext()
+//        managedObjectContext.persistentStoreCoordinator = coordinator
+//        return managedObjectContext
+//    }()
+//    
+//    // MARK: - CRUD
+//    
+//    private func create(entityName: String, context: NSManagedObjectContext? = nil) -> AnyObject? {
+//        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
+//            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: moc) as AnyObject?
+//        }
+//        return nil
+//    }
+//    
+//    private func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) -> [AnyObject]? {
+//        var results: [AnyObject]? = nil
+//        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
+//            var error: NSError? = nil
+//            var request = NSFetchRequest(entityName: entityName)
+//            if predicate != nil {
+//                request.predicate = predicate
+//            }
+//            results = moc.executeFetchRequest(request, error: &error)
+//            if results == nil {
+//            }
+//        }
+//        return results
+//    }
+//    
+//    private func save (context: NSManagedObjectContext? = nil) {
+//        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
+//            var error: NSError? = nil
+//            if moc.hasChanges && !moc.save(&error) {
+//            }
+//        }
+//    }
+//    
+//    private func delete(object: NSManagedObject, context: NSManagedObjectContext? = nil) {
+//        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
+//            moc.deleteObject(object)
+//        }
+//    }
+//    
+//    private func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) {
+//        if let moc = (context != nil ? context! : self.defaultManagedObjectContext) {
+//            if let objects = read(entityName, predicate: predicate, context: moc) as? [NSManagedObject] {
+//                for object: NSManagedObject in objects {
+//                    delete(object)
+//                }
+//            }
+//        }
+//    }
+//    
+//}
 
 // MARK: - Printable
 
-extension Driver: Printable {
-    public var description: String {
-        let description = "Stored URL: \(self.storeURL)"
-        return description
-    }
-}
+//extension Driver: Printable {
+//    var description: String {
+//        let description = "Stored URL: \(self.storeURL)"
+//        return description
+//    }
+//}
 
 // MARK: - Setup
 
-public func setup(storeName: String) {
-    Driver.sharedInstance.setup(storeName)
-}
+//public func setup(storeName: String) {
+//    Driver.sharedInstance.setup(storeName)
+//}
 
 public func managedObjectContext() -> NSManagedObjectContext? {
     return Driver.sharedInstance.defaultManagedObjectContext
@@ -168,19 +168,15 @@ public func managedObjectContext() -> NSManagedObjectContext? {
 
 // MARK: - Active Record
 
-public func create(entityName: String) -> AnyObject? {
-    return Driver.sharedInstance.create(entityName)
+public func create(entityName: String, context: NSManagedObjectContext? = nil) -> AnyObject? {
+    return Driver.sharedInstance.create(entityName, context: context)
 }
 
-public func find(entityName: String) -> [AnyObject]? {
-    return Driver.sharedInstance.read(entityName)
-}
-
-public func find(entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
+public func find(entityName: String, context: NSManagedObjectContext? = nil, predicate: NSPredicate? = nil) -> [AnyObject]? {
     return Driver.sharedInstance.read(entityName, predicate: predicate)
 }
 
-public func findFirst(entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
+public func findFirst(entityName: String, context: NSManagedObjectContext? = nil, predicate: NSPredicate? = nil) -> AnyObject? {
     if let objects = Driver.sharedInstance.read(entityName, predicate: predicate) {
         return objects.first
     }
@@ -191,11 +187,7 @@ public func delete(object: NSManagedObject) {
     Driver.sharedInstance.delete(object, context: object.managedObjectContext)
 }
 
-public func delete(entityName: String) {
-    Driver.sharedInstance.delete(entityName)
-}
-
-public func delete(entityName: String, predicate: NSPredicate? = nil) {
+public func delete(entityName: String, context: NSManagedObjectContext? = nil, predicate: NSPredicate? = nil) {
     Driver.sharedInstance.delete(entityName, predicate: predicate)
 }
 
