@@ -32,6 +32,20 @@ class Driver: NSObject {
         return Singleton.instance
     }
     
+    class func defaultContext() -> NSManagedObjectContext {
+        var context = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        context.persistentStoreCoordinator = Driver.sharedInstance.persistentStoreCoordinator
+        return context
+    }
+    
+    class func context() -> NSManagedObjectContext {
+        var context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
+        context.parentContext = Driver.defaultContext()
+        return context
+    }
+    
+    // MARK: -
+    
     private var automaticallyDeleteStoreOnMismatch: Bool = true
     
     lazy var defaultStoreName: String = {

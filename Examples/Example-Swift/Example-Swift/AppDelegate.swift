@@ -33,9 +33,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    func applicationWillTerminate(application: UIApplication) {
-        ActiveRecord.save()
-    }
-
 }
 

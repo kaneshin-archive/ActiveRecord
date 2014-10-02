@@ -30,7 +30,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        self.managedObjectContext = ActiveRecord.managedObjectContext()
+        self.managedObjectContext = ActiveRecord.context()?.parentContext
     }
 
     override func viewDidLoad() {
@@ -39,12 +39,17 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
         self.navigationItem.rightBarButtonItem = addButton
     }
+    
+    override func viewWillDisappear(animated: Bool) {
+        super.viewWillDisappear(animated)
+        ActiveRecord.save(context: self.managedObjectContext)
+    }
 
     func insertNewObject(sender: AnyObject) {
         let context = self.fetchedResultsController.managedObjectContext
         let entity = self.fetchedResultsController.fetchRequest.entity
-        let newEvent = NSEntityDescription.insertNewObjectForEntityForName(entity.name, inManagedObjectContext: context) as Event
-             
+        var newEvent = ActiveRecord.create(entity.name, context: context) as Event
+        
         newEvent.timeStamp = NSDate.date()
         if let error = newEvent.save() {
             println("Unresolved error \(error), \(error.userInfo)")

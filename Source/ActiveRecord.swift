@@ -25,8 +25,8 @@ import CoreData
 
 // MARK: - Setup
 
-public func managedObjectContext() -> NSManagedObjectContext? {
-    return Driver.sharedInstance.defaultManagedObjectContext
+public func context() -> NSManagedObjectContext? {
+    return Driver.context()
 }
 
 // MARK: - Active Record
