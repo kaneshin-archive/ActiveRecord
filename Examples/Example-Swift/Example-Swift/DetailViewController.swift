@@ -26,17 +26,14 @@ class DetailViewController: UIViewController {
 
     @IBOutlet weak var detailDescriptionLabel: UILabel!
 
-
-    var event: Event? {
+    var detailEvent: Event? {
         didSet {
-            // Update the view.
             self.configureView()
         }
     }
 
     func configureView() {
-        // Update the user interface for the detail item.
-        if let event = self.event {
+        if let event: Event = self.detailEvent {
             if let label = self.detailDescriptionLabel {
                 label.text = event.timeStamp.description
             }
@@ -45,7 +42,6 @@ class DetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         self.configureView()
     }
 

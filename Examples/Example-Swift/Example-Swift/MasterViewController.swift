@@ -26,39 +26,30 @@ import ActiveRecord
 
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
-    var detailViewController: DetailViewController? = nil
     var managedObjectContext: NSManagedObjectContext? = nil
-
-
+    
     override func awakeFromNib() {
         super.awakeFromNib()
-        if UIDevice.currentDevice().userInterfaceIdiom == .Pad {
-            self.clearsSelectionOnViewWillAppear = false
-            self.preferredContentSize = CGSize(width: 320.0, height: 600.0)
-        }
+        self.managedObjectContext = ActiveRecord.managedObjectContext()
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
         self.navigationItem.leftBarButtonItem = self.editButtonItem()
-
         let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
         self.navigationItem.rightBarButtonItem = addButton
-        if let split = self.splitViewController {
-            let controllers = split.viewControllers
-            self.detailViewController = controllers[controllers.count-1].topViewController as? DetailViewController
-        }
     }
 
     func insertNewObject(sender: AnyObject) {
         let context = self.fetchedResultsController.managedObjectContext
         let entity = self.fetchedResultsController.fetchRequest.entity
-        
-        let event = ActiveRecord.create(entity.name, context: context) as Event
-        event.timeStamp = NSDate()
-
-        ActiveRecord.save(context: context)
+        let newEvent = NSEntityDescription.insertNewObjectForEntityForName(entity.name, inManagedObjectContext: context) as Event
+             
+        newEvent.timeStamp = NSDate.date()
+        if let error = newEvent.save() {
+            println("Unresolved error \(error), \(error.userInfo)")
+            abort()
+        }
     }
 
     // MARK: - Segues
@@ -66,11 +57,8 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "showDetail" {
             if let indexPath = self.tableView.indexPathForSelectedRow() {
-            let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
-                let controller = (segue.destinationViewController as UINavigationController).topViewController as DetailViewController
-                controller.event = event
-                controller.navigationItem.leftBarButtonItem = self.splitViewController?.displayModeButtonItem()
-                controller.navigationItem.leftItemsSupplementBackButton = true
+                let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
+                (segue.destinationViewController as DetailViewController).detailEvent = event
             }
         }
     }
@@ -99,9 +87,11 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
     override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
         if editingStyle == .Delete {
-            if let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event? {
-                ActiveRecord.delete(event)
-                ActiveRecord.save(context: event.managedObjectContext)
+            let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
+            event.delete()
+            if let error = event.save() {
+                println("Unresolved error \(error), \(error.userInfo)")
+                abort()
             }
         }
     }
@@ -120,7 +110,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         let fetchRequest = NSFetchRequest()
         // Edit the entity name as appropriate.
-        let entity = NSEntityDescription.entityForName(Event.entityName(), inManagedObjectContext: ActiveRecord.managedObjectContext()!)
+        let entity = NSEntityDescription.entityForName("Event", inManagedObjectContext: self.managedObjectContext!)
         fetchRequest.entity = entity
         
         // Set the batch size to a suitable number.
@@ -134,7 +124,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         // Edit the section name key path and cache name if appropriate.
         // nil for section name key path means "no sections".
-        let aFetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: ActiveRecord.managedObjectContext()!, sectionNameKeyPath: nil, cacheName: "Master")
+        let aFetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.managedObjectContext!, sectionNameKeyPath: nil, cacheName: "Master")
         aFetchedResultsController.delegate = self
         _fetchedResultsController = aFetchedResultsController
         

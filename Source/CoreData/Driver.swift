@@ -32,20 +32,14 @@ class Driver: NSObject {
         return Singleton.instance
     }
     
-    private var storeName: String? = nil
     private var automaticallyDeleteStoreOnMismatch: Bool = true
     
     lazy var defaultStoreName: String = {
-        var defaultName: String? = nil
-        if self.storeName != nil && self.storeName != "" {
-            defaultName = self.storeName!
-        } else {
-            defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
-            if defaultName == nil {
-                defaultName = "DefaultStore.sqlite"
-            }
+        var defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
+        if defaultName == nil {
+            defaultName = "DefaultStore.sqlite"
         }
-        if !defaultName!.hasSuffix("sqlite") {
+        if !(defaultName!.hasSuffix("sqlite")) {
             defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
         }
         return defaultName!
@@ -71,20 +65,17 @@ class Driver: NSObject {
         let url = self.storeURL
         var error: NSError? = nil
         if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-            coordinator = nil
+            if self.automaticallyDeleteStoreOnMismatch {
+                NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
+                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+                    coordinator = nil
+                }
+            } else {
+                coordinator = nil
+            }
         }
         return coordinator
     }()
-
-//    func restore()  {
-//        let url = self.storeURL
-//        NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
-//        
-//        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-//            coordinator = nil
-//        }
-//    }
-
     
     lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
@@ -120,16 +111,20 @@ class Driver: NSObject {
         return results
     }
     
-    func save (context: NSManagedObjectContext? = nil) {
+    func save(context: NSManagedObjectContext? = nil) -> NSError? {
         if let moc = (context ?? self.defaultManagedObjectContext) {
-            var error: NSError? = nil
-            if moc.hasChanges && !moc.save(&error) {
+            if moc.hasChanges {
+                var error: NSError? = nil
+                if !moc.save(&error) {
+                    return error
+                }
             }
         }
+        return nil
     }
     
-    func delete(object: NSManagedObject, context: NSManagedObjectContext? = nil) {
-        if let moc = (context ?? self.defaultManagedObjectContext) {
+    func delete(object: NSManagedObject) {
+        if let moc = object.managedObjectContext {
             moc.deleteObject(object)
         }
     }
@@ -143,6 +138,15 @@ class Driver: NSObject {
             }
         }
     }
-    
 
 }
+
+// MARK: - Printable
+
+extension Driver: Printable {
+    override var description: String {
+        let description = "Stored URL: \(self.storeURL)"
+        return description
+    }
+}
+

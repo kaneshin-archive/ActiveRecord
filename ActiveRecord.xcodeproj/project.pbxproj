@@ -10,7 +10,6 @@
 		790BAE0819BC141300B10B2D /* ActiveRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = 790BAE0719BC141300B10B2D /* ActiveRecord.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		790BAE1219BC141300B10B2D /* ActiveRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */; };
 		790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1919BC14E500B10B2D /* ActiveRecord.swift */; };
-		7910709D19D12F9200649AD7 /* Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7910709C19D12F9200649AD7 /* Manager.swift */; };
 		791070A419D1315D00649AD7 /* Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791070A319D1315D00649AD7 /* Driver.swift */; };
 /* End PBXBuildFile section */
 
@@ -32,7 +31,6 @@
 		790BAE1019BC141300B10B2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRecordTests.swift; sourceTree = "<group>"; };
 		790BAE1919BC14E500B10B2D /* ActiveRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecord.swift; sourceTree = "<group>"; };
-		7910709C19D12F9200649AD7 /* Manager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Manager.swift; sourceTree = "<group>"; };
 		791070A319D1315D00649AD7 /* Driver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Driver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,7 +75,6 @@
 			children = (
 				790BAE0719BC141300B10B2D /* ActiveRecord.h */,
 				790BAE1919BC14E500B10B2D /* ActiveRecord.swift */,
-				7910709C19D12F9200649AD7 /* Manager.swift */,
 				7910709E19D1303B00649AD7 /* CoreData */,
 				790BAE0519BC141300B10B2D /* Supporting Files */,
 			);
@@ -226,7 +223,6 @@
 			files = (
 				791070A419D1315D00649AD7 /* Driver.swift in Sources */,
 				790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */,
-				7910709D19D12F9200649AD7 /* Manager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
