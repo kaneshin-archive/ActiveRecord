@@ -128,10 +128,18 @@ class Driver: NSObject {
     func save(context: NSManagedObjectContext? = nil) -> NSError? {
         if let moc = (context ?? self.defaultManagedObjectContext) {
             if moc.hasChanges {
-                var error: NSError? = nil
-                if !moc.save(&error) {
-                    return error
-                }
+                moc.performBlock({ () -> Void in
+                    var error: NSError? = nil
+                    if !moc.save(&error) {
+                        // return error
+                    }
+                    if let parent = moc.parentContext {
+                        parent.performBlock({ () -> Void in
+                            if !moc.save(&error) {
+                            }
+                        })
+                    }
+                })
             }
         }
         return nil

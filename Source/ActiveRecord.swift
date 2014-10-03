@@ -31,23 +31,27 @@ public func context() -> NSManagedObjectContext? {
 
 // MARK: - Active Record
 
-public func create(entityName: String, context: NSManagedObjectContext? = nil) -> AnyObject? {
-    return Driver.sharedInstance.create(entityName, context: context)
-}
-
-public func find(entityName: String, context: NSManagedObjectContext? = nil, predicate: NSPredicate? = nil) -> [AnyObject]? {
-    return Driver.sharedInstance.read(entityName, predicate: predicate)
-}
-
-public func findFirst(entityName: String, context: NSManagedObjectContext? = nil, predicate: NSPredicate? = nil) -> AnyObject? {
-    if let objects = Driver.sharedInstance.read(entityName, predicate: predicate) {
-        return objects.first
+extension NSManagedObjectContext {
+    
+    public func create(entityName: String) -> AnyObject? {
+        return Driver.sharedInstance.create(entityName, context: self)
     }
-    return nil
-}
+    
+    public func find(entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
+        return Driver.sharedInstance.read(entityName, predicate: predicate, context: self)
+    }
+    
+    public func findFirst(entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
+        if let objects = Driver.sharedInstance.read(entityName, predicate: predicate, context: self) {
+            return objects.first
+        }
+        return nil
+    }
+    
+    public func save() -> NSError? {
+        return Driver.sharedInstance.save(context: self)
+    }
 
-public func save(context: NSManagedObjectContext? = nil) -> NSError? {
-    return Driver.sharedInstance.save(context: context)
 }
 
 extension NSManagedObject {
@@ -57,7 +61,7 @@ extension NSManagedObject {
     }
     
     public func save() -> NSError? {
-        return ActiveRecord.save(context: self.managedObjectContext)
+        return self.managedObjectContext.save()
     }
     
 }

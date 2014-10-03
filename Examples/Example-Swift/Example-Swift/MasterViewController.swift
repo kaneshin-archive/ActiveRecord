@@ -30,7 +30,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        self.managedObjectContext = ActiveRecord.context()?.parentContext
+        self.managedObjectContext = ActiveRecord.context()
     }
 
     override func viewDidLoad() {
@@ -42,13 +42,13 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     
     override func viewWillDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
-        ActiveRecord.save(context: self.managedObjectContext)
+        self.fetchedResultsController.managedObjectContext.save()
     }
 
     func insertNewObject(sender: AnyObject) {
         let context = self.fetchedResultsController.managedObjectContext
         let entity = self.fetchedResultsController.fetchRequest.entity
-        var newEvent = ActiveRecord.create(entity.name, context: context) as Event
+        var newEvent = context.create(entity.name) as Event
         
         newEvent.timeStamp = NSDate.date()
         if let error = newEvent.save() {
