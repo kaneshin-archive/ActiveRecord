@@ -48,8 +48,8 @@ extension NSManagedObjectContext {
         return nil
     }
     
-    public func save() -> NSError? {
-        return Driver.sharedInstance.save(context: self)
+    public func save() {
+        Driver.sharedInstance.save(self)
     }
 
 }
@@ -60,8 +60,8 @@ extension NSManagedObject {
         Driver.sharedInstance.delete(self)
     }
     
-    public func save() -> NSError? {
-        return self.managedObjectContext.save()
+    public func save() {
+        self.managedObjectContext?.save()
     }
     
 }

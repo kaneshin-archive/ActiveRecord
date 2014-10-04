@@ -48,13 +48,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     func insertNewObject(sender: AnyObject) {
         let context = self.fetchedResultsController.managedObjectContext
         let entity = self.fetchedResultsController.fetchRequest.entity
-        var newEvent = context.create(entity.name) as Event
+        var newEvent = context.create(entity!.name!) as Event
         
-        newEvent.timeStamp = NSDate.date()
-        if let error = newEvent.save() {
-            println("Unresolved error \(error), \(error.userInfo)")
-            abort()
-        }
+        newEvent.timeStamp = NSDate()
+        newEvent.save()
     }
 
     // MARK: - Segues
@@ -94,10 +91,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         if editingStyle == .Delete {
             let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
             event.delete()
-            if let error = event.save() {
-                println("Unresolved error \(error), \(error.userInfo)")
-                abort()
-            }
+            event.save()
         }
     }
 

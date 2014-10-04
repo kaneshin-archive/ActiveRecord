@@ -32,16 +32,18 @@ class Driver: NSObject {
         return Singleton.instance
     }
     
-    class func defaultContext() -> NSManagedObjectContext {
-        var context = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
-        context.persistentStoreCoordinator = Driver.sharedInstance.persistentStoreCoordinator
-        return context
-    }
+    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
+        let coordinator = self.persistentStoreCoordinator
+        if coordinator == nil {
+            return nil
+        }
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        managedObjectContext.persistentStoreCoordinator = coordinator
+        return managedObjectContext
+    }()
     
     class func context() -> NSManagedObjectContext {
-        var context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
-        context.parentContext = Driver.defaultContext()
-        return context
+        return Driver.sharedInstance.defaultManagedObjectContext!
     }
     
     // MARK: -
@@ -59,7 +61,6 @@ class Driver: NSObject {
         return defaultName!
     }()
 
-    
     lazy var applicationDocumentsDirectory: NSURL = {
         let fileManager = NSFileManager.defaultManager()
         let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
@@ -71,7 +72,7 @@ class Driver: NSObject {
     }()
     
     lazy var managedObjectModel: NSManagedObjectModel = {
-        return NSManagedObjectModel.mergedModelFromBundles(nil)
+        return NSManagedObjectModel.mergedModelFromBundles(nil)!
     }()
     
     lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator? = {
@@ -91,72 +92,45 @@ class Driver: NSObject {
         return coordinator
     }()
     
-    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext()
-        managedObjectContext.persistentStoreCoordinator = coordinator
-        return managedObjectContext
-    }()
-
     // MARK: - CRUD
     
-    func create(entityName: String, context: NSManagedObjectContext? = nil) -> AnyObject? {
-        if let moc = (context ?? self.defaultManagedObjectContext) {
-            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: moc) as AnyObject?
-        }
-        return nil
+    func create(entityName: String, context: NSManagedObjectContext) -> AnyObject? {
+        return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as AnyObject?
     }
     
-    func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) -> [AnyObject]? {
         var results: [AnyObject]? = nil
-        if let moc = (context ?? self.defaultManagedObjectContext) {
-            var error: NSError? = nil
-            var request = NSFetchRequest(entityName: entityName)
-            if predicate != nil {
-                request.predicate = predicate
-            }
-            results = moc.executeFetchRequest(request, error: &error)
-            if results == nil {
-            }
+        var error: NSError? = nil
+        var request = NSFetchRequest(entityName: entityName)
+        if predicate != nil {
+            request.predicate = predicate
+        }
+        results = context.executeFetchRequest(request, error: &error)
+        if results == nil {
         }
         return results
     }
     
-    func save(context: NSManagedObjectContext? = nil) -> NSError? {
-        if let moc = (context ?? self.defaultManagedObjectContext) {
-            if moc.hasChanges {
-                moc.performBlock({ () -> Void in
-                    var error: NSError? = nil
-                    if !moc.save(&error) {
-                        // return error
-                    }
-                    if let parent = moc.parentContext {
-                        parent.performBlock({ () -> Void in
-                            if !moc.save(&error) {
-                            }
-                        })
-                    }
-                })
-            }
+    func save(context: NSManagedObjectContext) {
+        if context.hasChanges {
+            context.performBlock({ () -> Void in
+                var error: NSError? = nil
+                if !context.save(&error) {
+                }
+            })
         }
-        return nil
     }
-    
+
     func delete(object: NSManagedObject) {
         if let moc = object.managedObjectContext {
             moc.deleteObject(object)
         }
     }
     
-    func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext? = nil) {
-        if let moc = (context ?? self.defaultManagedObjectContext) {
-            if let objects = read(entityName, predicate: predicate, context: moc) as? [NSManagedObject] {
-                for object: NSManagedObject in objects {
-                    delete(object)
-                }
+    func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) {
+        if let objects = read(entityName, predicate: predicate, context: context) as? [NSManagedObject] {
+            for object: NSManagedObject in objects {
+                delete(object)
             }
         }
     }
