@@ -9,14 +9,16 @@ The library is inspired by the active record pattern which is a kind of design p
 
 ## Requirements
 
-- Xcode 6 Beta 7 (I'm not sure to run less than `Beta 7`)
+- Xcode 6.0.1+
+- iOS7+
 
 
 ## Installation
 
-- Add `ActiveRecord-swift` as a git submodule.
+- Clone `ActiveRecord-swift` as a git submodule.
 - Add `ActiveRecord.xcodeproj` file into your Xcode project.
 - Link `ActiveRecord.framework` product for your target.
+- Embed `ActiveRecord.framework`
 
 
 ----
