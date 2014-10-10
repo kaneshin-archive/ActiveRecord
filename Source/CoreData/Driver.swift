@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/**
+*  http://www.cocoanetics.com/2012/07/multi-context-coredata/
+*/
+
+
 import Foundation
 import CoreData
 
@@ -38,9 +43,25 @@ class Driver: NSObject {
             return nil
         }
         var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
-        managedObjectContext.persistentStoreCoordinator = coordinator
+        managedObjectContext.parentContext = self.writerManagedObjectContext
+        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
+
         return managedObjectContext
     }()
+    
+    /// For Background Thread Context to Save.
+    lazy var writerManagedObjectContext: NSManagedObjectContext? = {
+        let coordinator = self.persistentStoreCoordinator
+        if coordinator == nil {
+            return nil
+        }
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+        managedObjectContext.persistentStoreCoordinator = coordinator
+        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
+        return managedObjectContext
+    }()
+    
+    
     
     class func context() -> NSManagedObjectContext {
         return Driver.sharedInstance.defaultManagedObjectContext!

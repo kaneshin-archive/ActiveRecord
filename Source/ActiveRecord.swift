@@ -51,7 +51,25 @@ extension NSManagedObjectContext {
     public func save() {
         Driver.sharedInstance.save(self)
     }
-
+    
+    public class func managedObjectContext(#thread :NSThread) -> NSManagedObjectContext? {
+        if NSThread.isMainThread() {
+            return Driver.sharedInstance.defaultManagedObjectContext
+        } else {
+            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
+            let threadDictionary = thread.threadDictionary
+            
+            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+                return context
+            } else {
+                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+                context.parentContext = Driver.sharedInstance.defaultManagedObjectContext
+                context.mergePolicy = NSOverwriteMergePolicy
+                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+                return context
+            }
+        }
+    }
 }
 
 extension NSManagedObject {
