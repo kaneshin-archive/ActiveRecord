@@ -37,6 +37,15 @@ class Driver: NSObject {
         return Singleton.instance
     }
     
+    let maxConcurrentOperationCount = 1
+    var performOperationQueue: PerformOperationQueue
+    
+    override init() {
+        self.performOperationQueue = PerformOperationQueue()
+        self.performOperationQueue.maxConcurrentOperationCount = maxConcurrentOperationCount
+        // Need call super?
+    }
+    
     lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
@@ -50,7 +59,7 @@ class Driver: NSObject {
     }()
     
     /// For Background Thread Context to Save.
-    lazy var writerManagedObjectContext: NSManagedObjectContext? = {
+    private lazy var writerManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
             return nil
@@ -61,10 +70,22 @@ class Driver: NSObject {
         return managedObjectContext
     }()
     
-    
-    
-    class func context() -> NSManagedObjectContext {
-        return Driver.sharedInstance.defaultManagedObjectContext!
+    class func context() -> NSManagedObjectContext? {
+        if NSThread.isMainThread() {
+            return Driver.sharedInstance.defaultManagedObjectContext
+        } else {
+            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
+            let threadDictionary = NSThread.currentThread().threadDictionary
+            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+                return context
+            } else {
+                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+                context.parentContext = Driver.sharedInstance.defaultManagedObjectContext
+                context.mergePolicy = NSOverwriteMergePolicy
+                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+                return context
+            }
+        }
     }
     
     // MARK: -
@@ -115,36 +136,60 @@ class Driver: NSObject {
     
     // MARK: - CRUD
     
-    func create(entityName: String, context: NSManagedObjectContext) -> AnyObject? {
-        return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as AnyObject?
+    func create(entityName: String, context: NSManagedObjectContext?) -> AnyObject? {
+        if let context = context {
+            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as AnyObject?
+        } else {
+            return nil
+        }
     }
     
-    func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, context: NSManagedObjectContext?) -> [AnyObject]? {
+        if let context = context {
         var results: [AnyObject]? = nil
-        var error: NSError? = nil
-        var request = NSFetchRequest(entityName: entityName)
-        if predicate != nil {
-            request.predicate = predicate
+            var error: NSError? = nil
+            var request = NSFetchRequest(entityName: entityName)
+            if predicate != nil {
+                request.predicate = predicate
+            }
+            if sortDescriptor != nil {
+                request.predicate = predicate
+            }
+            results = context.executeFetchRequest(request, error: &error)
+            if results == nil {
+            }
+            return results
+        } else {
+            return nil
         }
-        results = context.executeFetchRequest(request, error: &error)
-        if results == nil {
-        }
-        return results
     }
     
-    func save(context: NSManagedObjectContext) {
-        if context.hasChanges {
-            context.performBlock({ () -> Void in
+    func save(context: NSManagedObjectContext?) -> Bool {
+        if let context = context {
+            if context.hasChanges {
                 var error: NSError? = nil
-                if !context.save(&error) {
+                context.performBlockAndWait({ () -> Void in
+                    if !context.save(&error) {
+                    }
+                })
+                if error != nil {
+                    return false
+                } else {
+                    return true
                 }
-            })
+            } else {
+                return true
+            }
+        } else {
+            return false
         }
     }
 
-    func delete(object: NSManagedObject) {
-        if let moc = object.managedObjectContext {
-            moc.deleteObject(object)
+    func delete(object: NSManagedObject?) {
+        if let object = object {
+            if let context = object.managedObjectContext {
+                context.deleteObject(object)
+            }
         }
     }
     
@@ -153,6 +198,46 @@ class Driver: NSObject {
             for object: NSManagedObject in objects {
                 delete(object)
             }
+        }
+    }
+    
+    func performBlockAndWait(#block: (Void -> Void)?) {
+        if let block = block {
+            Driver.context()?.performBlockAndWait(block)
+        }
+    }
+    
+    func performBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+        if let block = block {
+            let operation = PerformOperation { () -> Void in
+                if let context = Driver.context() {
+                    context.performBlockAndWait(block)
+                    var objects: [AnyObject] = [AnyObject]()
+                    objects.append(context.insertedObjects.allObjects)
+                    objects.append(context.updatedObjects.allObjects)
+                    objects.append(context.deletedObjects.allObjects)
+                    objects.append(context.registeredObjects.allObjects)
+                    
+                    var error: NSError?
+                    if context.obtainPermanentIDsForObjects(objects, error: &error) {
+                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                            if error != nil {
+                                faiure?(error: error)
+                            } else {
+                                if self.save(context) {
+                                    success?()
+                                }
+                            }
+                        })
+                    } else {
+                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                            faiure?(error: error)
+                            return
+                        })
+                    }
+                }
+            }
+            self.performOperationQueue.addOperation(operation)
         }
     }
 
@@ -167,3 +252,15 @@ extension Driver: Printable {
     }
 }
 
+class PerformOperationQueue: NSOperationQueue {
+    override func addOperation(op: NSOperation) {
+        if let lastOperation = self.operations.last as? NSOperation {
+            op.addDependency(lastOperation)
+        }
+        super.addOperation(op)
+    }
+}
+
+class PerformOperation: NSBlockOperation {
+    
+}

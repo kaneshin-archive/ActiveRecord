@@ -29,57 +29,94 @@ public func context() -> NSManagedObjectContext? {
     return Driver.context()
 }
 
-// MARK: - Active Record
+public class ActiveRecord: NSObject {
+    public class func context() -> NSManagedObjectContext? {
+        return Driver.context()
+    }
+    /**
+    Save
+    
+    Save context of main queue after save context of current thread.
+    
+    :returns: Success
+    */
+    public class func save() -> Bool {
+        return Driver.sharedInstance.save(Driver.context())
+    }
+    
+    /**
+    Create
+    
+    :param: entityName
+    
+    :returns: EntityObject
+    */
+    public class func create(#entityName: String) -> AnyObject? {
+        return Driver.sharedInstance.create(entityName, context: Driver.context())
+    }
+    
+    /**
+    Find
+    
+    :param: entityName
+    :param: predicate
+    
+    :returns: Found Objects
+    */
+    public class func find(#entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
+        return Driver.sharedInstance.read(entityName, predicate: predicate, sortDescriptor: nil, context: Driver.context())
+    }
+    
+    /**
+    Find
+    
+    :param: entityName
+    :param: predicate
+    :param: sortDescriptor
+    
+    :returns: Found Objects
+    */
+    public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil) -> [AnyObject]? {
+        return Driver.sharedInstance.read(entityName, predicate: predicate, sortDescriptor: sortDescriptor, context: Driver.context())
+    }
+    
+    /**
+    Find first object
+    
+    :param: entityName
+    :param: predicate
+    
+    :returns: FirstObject of Found Objects
+    */
+    public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil) -> AnyObject? {
+        return Driver.sharedInstance.read(entityName, predicate: predicate, sortDescriptor: sortDescriptor, context: Driver.context())?.first
+    }
+ 
+    /**
+    Perform and Save (Sync) with ObtainParmanent
+    
+    :param: block
+    */
+    public class func performBlockAndWait(#block: (() -> Void)?) {
+        Driver.sharedInstance.performBlockAndWait(block: block)
+    }
 
-extension NSManagedObjectContext {
+    /**
+    Perform and Save (Async) with ObtainParmanent
     
-    public func create(entityName: String) -> AnyObject? {
-        return Driver.sharedInstance.create(entityName, context: self)
+    :param: block
+    :param: faiure
+    */
+    public class func performBlock(#block: (() -> Void)?,success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+        Driver.sharedInstance.performBlock(block: block, success: success, faiure: faiure)
     }
     
-    public func find(entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
-        return Driver.sharedInstance.read(entityName, predicate: predicate, context: self)
-    }
+    /**
+    Delete
     
-    public func findFirst(entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
-        if let objects = Driver.sharedInstance.read(entityName, predicate: predicate, context: self) {
-            return objects.first
-        }
-        return nil
+    :param: object 
+    */
+    public class func delete(#object: NSManagedObject?) {
+        Driver.sharedInstance.delete(object)
     }
-    
-    public func save() {
-        Driver.sharedInstance.save(self)
-    }
-    
-    public class func managedObjectContext(#thread :NSThread) -> NSManagedObjectContext? {
-        if NSThread.isMainThread() {
-            return Driver.sharedInstance.defaultManagedObjectContext
-        } else {
-            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
-            let threadDictionary = thread.threadDictionary
-            
-            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
-                return context
-            } else {
-                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
-                context.parentContext = Driver.sharedInstance.defaultManagedObjectContext
-                context.mergePolicy = NSOverwriteMergePolicy
-                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
-                return context
-            }
-        }
-    }
-}
-
-extension NSManagedObject {
-    
-    public func delete() {
-        Driver.sharedInstance.delete(self)
-    }
-    
-    public func save() {
-        self.managedObjectContext?.save()
-    }
-    
 }
