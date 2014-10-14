@@ -24,6 +24,26 @@ import UIKit
 import CoreData
 import ActiveRecord
 
+extension NSManagedObjectContext {
+    func save() {
+        
+    }
+    
+    func create(#entityName: String) -> AnyObject? {
+        return nil
+    }
+}
+extension NSManagedObject {
+    func delete() {
+        
+    }
+    
+    func save() {
+        
+    }
+}
+
+
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     override func viewDidLoad() {
