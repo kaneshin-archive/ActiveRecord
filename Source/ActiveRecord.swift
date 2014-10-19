@@ -28,7 +28,7 @@ import CoreData
 public class ActiveRecord: NSObject {
     
     /**
-    For perform in background queue
+    For perform in background queue (Don't asynchronous processing in block)
     
     :param: block
     :param: faiure
@@ -39,6 +39,12 @@ public class ActiveRecord: NSObject {
         }
     }
     
+    /**
+    For peform in background queue : Manually call timing of save.(Directed to asynchronous processing in block)
+   
+    :param: block
+    :param: faiure
+    */
     public class func performBackgroundBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
         Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
             Driver.sharedInstance.performBlockWaitSave(block: block, success: success, faiure: faiure)
