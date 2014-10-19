@@ -223,8 +223,14 @@ class Driver: NSObject {
             var error: NSError? = nil
             parentContext.performBlock({ () -> Void in
                 if parentContext.save(&error) {
+                    if parentContext == self.defaultManagedObjectContext {
+                        println("Merge to MainQueueContext")
+                    } else if parentContext == self.writerManagedObjectContext {
+                        println("Data stored")
+                    } else {
+                        println("Recursive save \(parentContext)")
+                    }
                     self.recursiveSave(parentContext)
-                    println("Recursive save \(parentContext)")
                 }
             })
         }
