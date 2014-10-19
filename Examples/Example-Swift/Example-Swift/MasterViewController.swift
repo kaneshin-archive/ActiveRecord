@@ -104,7 +104,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             return _fetchedResultsController!
         }
             
-        let moc = ActiveRecord.context()
+        let moc = NSManagedObjectContext.context()
 
         let fetchRequest = NSFetchRequest()
         // Edit the entity name as appropriate.

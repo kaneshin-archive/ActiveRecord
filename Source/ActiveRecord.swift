@@ -25,10 +25,6 @@ import CoreData
 
 // MARK: - Setup
 
-public func context() -> NSManagedObjectContext? {
-    return Driver.sharedInstance.context()
-}
-
 public extension NSManagedObject {
     public class func create(#entityName: String) -> NSManagedObject? {
         return Driver.sharedInstance.create(entityName, context: Driver.sharedInstance.context())
@@ -66,6 +62,10 @@ public extension NSManagedObjectContext {
     
     public class func save() {
         Driver.sharedInstance.save(Driver.sharedInstance.context())
+    }
+    
+    public class func context() -> NSManagedObjectContext? {
+        return Driver.sharedInstance.context()
     }
 }
 
