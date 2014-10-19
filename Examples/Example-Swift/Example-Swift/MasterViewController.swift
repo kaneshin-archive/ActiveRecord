@@ -42,12 +42,23 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     func insertNewObject(sender: AnyObject) {
         let operation :NSOperationQueue = NSOperationQueue()
         operation.addOperationWithBlock { () -> Void in
-            let context = self.fetchedResultsController.managedObjectContext
-            let entity = self.fetchedResultsController.fetchRequest.entity
-            var newEvent = Event.create(entityName: entity!.name!) as? Event
-            
-            newEvent!.timeStamp = NSDate()
-            newEvent!.save()
+        }
+        
+        for i in 0...3 {
+            var id: NSManagedObjectID?
+            ActiveRecord.performBackgroundBlock(block: { () -> Void in
+                let entity = self.fetchedResultsController.fetchRequest.entity
+                var newEvent = Event.create(entityName: entity!.name!) as? Event
+        
+                newEvent!.timeStamp = NSDate()
+                newEvent!.save()
+                id = newEvent?.objectID
+                }, success: { () -> Void in
+                    if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
+                        println(object)
+                    }
+                }) { (error) -> Void in
+            }
         }
     }
 

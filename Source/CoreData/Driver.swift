@@ -37,13 +37,13 @@ class Driver: NSObject {
         return Singleton.instance
     }
     
-    let maxConcurrentOperationCount = 1
+    let kMaxConcurrentOperationCount = 1
     var performOperationQueue: PerformOperationQueue
     
     override init() {
         self.performOperationQueue = PerformOperationQueue()
-        self.performOperationQueue.maxConcurrentOperationCount = maxConcurrentOperationCount
-        // Need call super?
+        self.performOperationQueue.maxConcurrentOperationCount = kMaxConcurrentOperationCount
+        super.init()
     }
     
     /// Main queue context
@@ -213,6 +213,11 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Save for PSC
+    
+    :param: context
+    */
     func recursiveSave(context: NSManagedObjectContext?) {
         if let parentContext = context?.parentContext {
             var error: NSError? = nil
@@ -277,36 +282,44 @@ class Driver: NSObject {
         if let block = block {
             let operation = PerformOperation { () -> Void in
                 if let context = Driver.sharedInstance.context() {
-                    context.performBlockAndWait(block)
-                    var objects: [AnyObject] = [AnyObject]()
-                    objects.append(context.insertedObjects.allObjects)
-                    objects.append(context.updatedObjects.allObjects)
-                    objects.append(context.deletedObjects.allObjects)
-                    objects.append(context.registeredObjects.allObjects)
-                    
-                    var error: NSError?
-                    if context.obtainPermanentIDsForObjects(objects, error: &error) {
-                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                            if error != nil {
-                                faiure?(error: error)
-                            } else {
-                                if self.save(context) {
-                                    success?()
+                    context.performBlock({ () -> Void in
+                        block()
+                        var objects: [AnyObject] = [AnyObject]()
+                        let _objects: NSMutableSet = NSMutableSet()
+                        _objects.addObjectsFromArray(context.insertedObjects.allObjects)
+                        _objects.addObjectsFromArray(context.updatedObjects.allObjects)
+                        _objects.addObjectsFromArray(context.deletedObjects.allObjects)
+                        _objects.addObjectsFromArray(context.registeredObjects.allObjects)
+                        objects = _objects.allObjects
+                        
+                        var error: NSError?
+                        
+                        if context.obtainPermanentIDsForObjects(objects, error: &error) {
+                                if error != nil {
+                                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                        faiure?(error: error)
+                                        return
+                                    })
+                                } else {
+                                    if self.save(context) {
+                                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                            success?()
+                                            return
+                                        })
+                                    }
                                 }
-                            }
-                        })
-                    } else {
-                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                            faiure?(error: error)
-                            return
-                        })
-                    }
+                        } else {
+                            dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                faiure?(error: error)
+                                return
+                            })
+                        }
+                    })
                 }
             }
             self.performOperationQueue.addOperation(operation)
         }
     }
-
 }
 
 // MARK: - Printable
@@ -320,6 +333,7 @@ extension Driver: Printable {
 
 class PerformOperationQueue: NSOperationQueue {
     override func addOperation(op: NSOperation) {
+        println("Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {
             op.addDependency(lastOperation)
         }
