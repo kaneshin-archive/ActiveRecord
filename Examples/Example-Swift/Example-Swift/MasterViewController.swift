@@ -24,26 +24,6 @@ import UIKit
 import CoreData
 import ActiveRecord
 
-extension NSManagedObjectContext {
-    func save() {
-        
-    }
-    
-    func create(#entityName: String) -> AnyObject? {
-        return nil
-    }
-}
-extension NSManagedObject {
-    func delete() {
-        
-    }
-    
-    func save() {
-        
-    }
-}
-
-
 class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
 
     override func viewDidLoad() {
@@ -51,6 +31,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         self.navigationItem.leftBarButtonItem = self.editButtonItem()
         let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
         self.navigationItem.rightBarButtonItem = addButton
+        self.tableView.estimatedRowHeight = 44
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -59,12 +40,15 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     }
 
     func insertNewObject(sender: AnyObject) {
-        let context = self.fetchedResultsController.managedObjectContext
-        let entity = self.fetchedResultsController.fetchRequest.entity
-        var newEvent = context.create(entityName: entity!.name!) as Event
-        
-        newEvent.timeStamp = NSDate()
-        newEvent.save()
+        let operation :NSOperationQueue = NSOperationQueue()
+        operation.addOperationWithBlock { () -> Void in
+            let context = self.fetchedResultsController.managedObjectContext
+            let entity = self.fetchedResultsController.fetchRequest.entity
+            var newEvent = Event.create(entityName: entity!.name!) as? Event
+            
+            newEvent!.timeStamp = NSDate()
+            newEvent!.save()
+        }
     }
 
     // MARK: - Segues
@@ -110,7 +94,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
-        cell.textLabel?.text = event.timeStamp.description
+        cell.textLabel.text = event.timeStamp.description
     }
 
     // MARK: - Fetched results controller
@@ -138,7 +122,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         // Edit the section name key path and cache name if appropriate.
         // nil for section name key path means "no sections".
-        let aFetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc!, sectionNameKeyPath: nil, cacheName: "Master")
+        let aFetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc!, sectionNameKeyPath: nil, cacheName: nil)
         aFetchedResultsController.delegate = self
         _fetchedResultsController = aFetchedResultsController
         

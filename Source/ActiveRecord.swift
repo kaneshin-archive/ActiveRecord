@@ -26,97 +26,48 @@ import CoreData
 // MARK: - Setup
 
 public func context() -> NSManagedObjectContext? {
-    return Driver.context()
+    return Driver.sharedInstance.context()
 }
 
-public class ActiveRecord: NSObject {
-    public class func context() -> NSManagedObjectContext? {
-        return Driver.context()
-    }
-    /**
-    Save
-    
-    Save context of main queue after save context of current thread.
-    
-    :returns: Success
-    */
-    public class func save() -> Bool {
-        return Driver.sharedInstance.save(Driver.context())
+public extension NSManagedObject {
+    public class func create(#entityName: String) -> NSManagedObject? {
+        return Driver.sharedInstance.create(entityName, context: Driver.sharedInstance.context())
     }
     
-    /**
-    Create
-    
-    :param: entityName
-    
-    :returns: EntityObject
-    */
-    public class func create(#entityName: String) -> AnyObject? {
-        return Driver.sharedInstance.create(entityName, context: Driver.context())
+    public func save() {
+        Driver.sharedInstance.save(self.managedObjectContext)
     }
     
-    /**
-    Find
+    public func delete() {
+        Driver.sharedInstance.delete(self)
+    }
     
-    :param: entityName
-    :param: predicate
-    
-    :returns: Found Objects
-    */
     public class func find(#entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
-        return Driver.sharedInstance.read(entityName, predicate: predicate, sortDescriptor: nil, context: Driver.context())
+        return Driver.sharedInstance.read(entityName, predicate: predicate, context: Driver.sharedInstance.context())
     }
     
-    /**
-    Find
-    
-    :param: entityName
-    :param: predicate
-    :param: sortDescriptor
-    
-    :returns: Found Objects
-    */
-    public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil) -> [AnyObject]? {
-        return Driver.sharedInstance.read(entityName, predicate: predicate, sortDescriptor: sortDescriptor, context: Driver.context())
+    public class func findFirst(#entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
+        if let objects = Driver.sharedInstance.read(entityName, predicate: predicate, context: Driver.sharedInstance.context()) {
+            return objects.first
+        }
+        return nil
     }
     
-    /**
-    Find first object
-    
-    :param: entityName
-    :param: predicate
-    
-    :returns: FirstObject of Found Objects
-    */
-    public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil) -> AnyObject? {
-        return Driver.sharedInstance.read(entityName, predicate: predicate, sortDescriptor: sortDescriptor, context: Driver.context())?.first
+    public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
+        return Driver.sharedInstance.count(entityName, predicate: predicate, context: Driver.sharedInstance.context())
     }
- 
-    /**
-    Perform and Save (Sync) with ObtainParmanent
     
-    :param: block
-    */
-    public class func performBlockAndWait(#block: (() -> Void)?) {
-        Driver.sharedInstance.performBlockAndWait(block: block)
-    }
+}
 
-    /**
-    Perform and Save (Async) with ObtainParmanent
-    
-    :param: block
-    :param: faiure
-    */
-    public class func performBlock(#block: (() -> Void)?,success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
-        Driver.sharedInstance.performBlock(block: block, success: success, faiure: faiure)
+public extension NSManagedObjectContext {
+    public func save() {
+        Driver.sharedInstance.save(self)
     }
     
-    /**
-    Delete
-    
-    :param: object 
-    */
-    public class func delete(#object: NSManagedObject?) {
-        Driver.sharedInstance.delete(object)
+    public class func save() {
+        Driver.sharedInstance.save(Driver.sharedInstance.context())
     }
 }
+
+
+

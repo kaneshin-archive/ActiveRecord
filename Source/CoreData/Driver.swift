@@ -46,6 +46,7 @@ class Driver: NSObject {
         // Need call super?
     }
     
+    /// Main queue context
     lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
@@ -70,7 +71,12 @@ class Driver: NSObject {
         return managedObjectContext
     }()
     
-    class func context() -> NSManagedObjectContext? {
+    /**
+    Get current thread context
+    
+    :returns: Current thread context
+    */
+    func context() -> NSManagedObjectContext? {
         if NSThread.isMainThread() {
             return Driver.sharedInstance.defaultManagedObjectContext
         } else {
@@ -103,12 +109,14 @@ class Driver: NSObject {
         return defaultName!
     }()
 
+    ///
     lazy var applicationDocumentsDirectory: NSURL = {
         let fileManager = NSFileManager.defaultManager()
         let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
         return urls.last as NSURL
     }()
     
+    /// StoreURL
     lazy var storeURL: NSURL = {
         return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
     }()
@@ -136,17 +144,35 @@ class Driver: NSObject {
     
     // MARK: - CRUD
     
-    func create(entityName: String, context: NSManagedObjectContext?) -> AnyObject? {
+    /**
+    Create Entity
+    
+    :param: entityName
+    :param: context
+    
+    :returns:
+    */
+    func create(entityName: String, context: NSManagedObjectContext?) -> NSManagedObject? {
         if let context = context {
-            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as AnyObject?
+            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as? NSManagedObject
         } else {
             return nil
         }
     }
     
+    /**
+    Read Entity
+    
+    :param: entityName
+    :param: predicate
+    :param: sortDescriptor
+    :param: context
+    
+    :returns:
+    */
     func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, context: NSManagedObjectContext?) -> [AnyObject]? {
         if let context = context {
-        var results: [AnyObject]? = nil
+            var results: [AnyObject]? = nil
             var error: NSError? = nil
             var request = NSFetchRequest(entityName: entityName)
             if predicate != nil {
@@ -164,23 +190,63 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Count Entities
+    
+    :param: entityName
+    :param: predicate
+    :param: context
+    
+    :returns:
+    */
+    func count(entityName: String, predicate: NSPredicate? = nil,context: NSManagedObjectContext?) -> Int {
+        if let context = context {
+            var results: [AnyObject]? = nil
+            var error: NSError? = nil
+            var request = NSFetchRequest(entityName: entityName)
+            if predicate != nil {
+                request.predicate = predicate
+            }
+            return context.countForFetchRequest(request, error: &error)
+        } else {
+            return 0
+        }
+    }
+    
+    func recursiveSave(context: NSManagedObjectContext?) {
+        if let parentContext = context?.parentContext {
+            var error: NSError? = nil
+            parentContext.performBlock({ () -> Void in
+                if parentContext.save(&error) {
+                    self.recursiveSave(parentContext)
+                    println("Recursive save \(parentContext)")
+                }
+            })
+        }
+    }
+    
     func save(context: NSManagedObjectContext?) -> Bool {
         if let context = context {
             if context.hasChanges {
                 var error: NSError? = nil
                 context.performBlockAndWait({ () -> Void in
-                    if !context.save(&error) {
+                    if context.save(&error) {
+                        self.recursiveSave(context)
                     }
                 })
                 if error != nil {
+                    println("Save failed : \(error)")
                     return false
                 } else {
+                    println("Save Success")
                     return true
                 }
             } else {
+                println("Save Success")
                 return true
             }
         } else {
+            println("Save failed : context is nil")
             return false
         }
     }
@@ -193,7 +259,7 @@ class Driver: NSObject {
         }
     }
     
-    func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) {
+    func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) {
         if let objects = read(entityName, predicate: predicate, context: context) as? [NSManagedObject] {
             for object: NSManagedObject in objects {
                 delete(object)
@@ -203,14 +269,14 @@ class Driver: NSObject {
     
     func performBlockAndWait(#block: (Void -> Void)?) {
         if let block = block {
-            Driver.context()?.performBlockAndWait(block)
+            Driver.sharedInstance.context()?.performBlockAndWait(block)
         }
     }
     
     func performBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
         if let block = block {
             let operation = PerformOperation { () -> Void in
-                if let context = Driver.context() {
+                if let context = Driver.sharedInstance.context() {
                     context.performBlockAndWait(block)
                     var objects: [AnyObject] = [AnyObject]()
                     objects.append(context.insertedObjects.allObjects)
