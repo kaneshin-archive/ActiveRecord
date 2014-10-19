@@ -288,45 +288,44 @@ class Driver: NSObject {
     func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
         if let block = block {
             let operation = PerformOperation { () -> Void in
-                if let context = Driver.sharedInstance.context() {
-                    context.performBlock({ () -> Void in
-                        block(doSave: { () -> Void in
-                            var objects: [AnyObject] = [AnyObject]()
-                            let _objects: NSMutableSet = NSMutableSet()
+                self.context()?.performBlock({ () -> Void in
+                    block(doSave: { () -> Void in
+                        var objects: [AnyObject] = [AnyObject]()
+                        let _objects: NSMutableSet = NSMutableSet()
+                        
+                        if let localContext = self.context() {
+                            _objects.addObjectsFromArray(localContext.insertedObjects.allObjects)
+                            _objects.addObjectsFromArray(localContext.updatedObjects.allObjects)
+                            _objects.addObjectsFromArray(localContext.deletedObjects.allObjects)
+                            _objects.addObjectsFromArray(localContext.registeredObjects.allObjects)
+                            objects = _objects.allObjects
                             
-                            if let localContext = self.context() {
-                                _objects.addObjectsFromArray(localContext.insertedObjects.allObjects)
-                                _objects.addObjectsFromArray(localContext.updatedObjects.allObjects)
-                                _objects.addObjectsFromArray(localContext.deletedObjects.allObjects)
-                                _objects.addObjectsFromArray(localContext.registeredObjects.allObjects)
-                                objects = _objects.allObjects
-                
-                                var error: NSError?
-                                
-                                if localContext.obtainPermanentIDsForObjects(objects, error: &error) {
-                                    if error != nil {
-                                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                            faiure?(error: error)
-                                            return
-                                        })
-                                    } else {
-                                        if self.save(localContext) {
-                                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                                success?()
-                                                return
-                                            })
-                                        }
-                                    }
-                                } else {
-                                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            var error: NSError?
+                            
+                            if localContext.obtainPermanentIDsForObjects(objects, error: &error) {
+                                if error != nil {
+                                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
                                         faiure?(error: error)
                                         return
                                     })
+                                } else {
+                                    if self.save(localContext) {
+                                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                            success?()
+                                            return
+                                        })
+                                    }
                                 }
+                            } else {
+                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                    faiure?(error: error)
+                                    return
+                                })
                             }
-                        })
+                        }
                     })
-                }
+                })
+                return
             }
             self.performOperationQueue.addOperation(operation)
         }

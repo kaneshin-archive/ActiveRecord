@@ -73,7 +73,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                     doSave()
                 })
                 }, success: { () -> Void in
-                    
+                    println(id)
+                    if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
+                        println(object)
+                    }
                 }, faiure: { (error) -> Void in
                     
             })
