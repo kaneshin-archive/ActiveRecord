@@ -26,11 +26,31 @@ import CoreData
 // MARK: - Setup
 
 public class ActiveRecord: NSObject {
+    
+    /**
+    For perform in background queue
+    
+    :param: block
+    :param: faiure
+    */
     public class func performBackgroundBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
         Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
             Driver.sharedInstance.performBlock(block: block, success: success, faiure: faiure)
         }
     }
+    
+    public class func performBackgroundBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+        Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
+            Driver.sharedInstance.performBlockWaitSave(block: block, success: success, faiure: faiure)
+        }
+    }
+
+    /**
+    For perform in background queue
+    
+    :param: block
+    :param: faiure
+    */
     public class func performBackgroundBlockAndWait(#block: (Void -> Void)?) {
         Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
             Driver.sharedInstance.performBlockAndWait(block: block)

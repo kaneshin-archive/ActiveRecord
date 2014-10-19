@@ -44,22 +44,40 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         operation.addOperationWithBlock { () -> Void in
         }
         
-        for i in 0...3 {
             var id: NSManagedObjectID?
+            #if false
             ActiveRecord.performBackgroundBlock(block: { () -> Void in
-                let entity = self.fetchedResultsController.fetchRequest.entity
-                var newEvent = Event.create(entityName: entity!.name!) as? Event
-        
-                newEvent!.timeStamp = NSDate()
-                newEvent!.save()
-                id = newEvent?.objectID
+                for i in 0...5 {
+                    let entity = self.fetchedResultsController.fetchRequest.entity
+                    var newEvent = Event.create(entityName: entity!.name!) as? Event
+                
+                    newEvent!.timeStamp = NSDate()
+                    id = newEvent?.objectID
+                }
                 }, success: { () -> Void in
                     if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
                         println(object)
                     }
                 }) { (error) -> Void in
             }
-        }
+                #else
+            ActiveRecord.performBackgroundBlockWaitSave(block: { (doSave) -> Void in
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
+                    for i in 0...5 {
+                        let entity = self.fetchedResultsController.fetchRequest.entity
+                        var newEvent = Event.create(entityName: entity!.name!) as? Event
+                        
+                        newEvent!.timeStamp = NSDate()
+                        id = newEvent?.objectID
+                    }
+                    doSave()
+                })
+                }, success: { () -> Void in
+                    
+                }, faiure: { (error) -> Void in
+                    
+            })
+                #endif
     }
 
     // MARK: - Segues

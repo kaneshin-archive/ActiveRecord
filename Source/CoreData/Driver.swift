@@ -279,46 +279,58 @@ class Driver: NSObject {
     }
     
     func performBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+        self.performBlockWaitSave(block: { (doSave) -> Void in
+            block?()
+            doSave()
+        }, success: success, faiure: faiure)
+    }
+    
+    func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
         if let block = block {
             let operation = PerformOperation { () -> Void in
                 if let context = Driver.sharedInstance.context() {
                     context.performBlock({ () -> Void in
-                        block()
-                        var objects: [AnyObject] = [AnyObject]()
-                        let _objects: NSMutableSet = NSMutableSet()
-                        _objects.addObjectsFromArray(context.insertedObjects.allObjects)
-                        _objects.addObjectsFromArray(context.updatedObjects.allObjects)
-                        _objects.addObjectsFromArray(context.deletedObjects.allObjects)
-                        _objects.addObjectsFromArray(context.registeredObjects.allObjects)
-                        objects = _objects.allObjects
-                        
-                        var error: NSError?
-                        
-                        if context.obtainPermanentIDsForObjects(objects, error: &error) {
-                                if error != nil {
-                                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                        block(doSave: { () -> Void in
+                            var objects: [AnyObject] = [AnyObject]()
+                            let _objects: NSMutableSet = NSMutableSet()
+                            
+                            if let localContext = self.context() {
+                                _objects.addObjectsFromArray(localContext.insertedObjects.allObjects)
+                                _objects.addObjectsFromArray(localContext.updatedObjects.allObjects)
+                                _objects.addObjectsFromArray(localContext.deletedObjects.allObjects)
+                                _objects.addObjectsFromArray(localContext.registeredObjects.allObjects)
+                                objects = _objects.allObjects
+                
+                                var error: NSError?
+                                
+                                if localContext.obtainPermanentIDsForObjects(objects, error: &error) {
+                                    if error != nil {
+                                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                            faiure?(error: error)
+                                            return
+                                        })
+                                    } else {
+                                        if self.save(localContext) {
+                                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                                success?()
+                                                return
+                                            })
+                                        }
+                                    }
+                                } else {
+                                    dispatch_async(dispatch_get_main_queue(), { () -> Void in
                                         faiure?(error: error)
                                         return
                                     })
-                                } else {
-                                    if self.save(context) {
-                                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                            success?()
-                                            return
-                                        })
-                                    }
                                 }
-                        } else {
-                            dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                faiure?(error: error)
-                                return
-                            })
-                        }
+                            }
+                        })
                     })
                 }
             }
             self.performOperationQueue.addOperation(operation)
         }
+
     }
 }
 
