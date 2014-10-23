@@ -17,6 +17,7 @@
 		79CF6D7F19DD8C0200D2C9BC /* ActiveRecord.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79CF6D7C19DD8BF000D2C9BC /* ActiveRecord.framework */; };
 		79CF6D8019DD8C0200D2C9BC /* ActiveRecord.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79CF6D7C19DD8BF000D2C9BC /* ActiveRecord.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		79CF6D8519DD8C7D00D2C9BC /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CF6D8419DD8C7D00D2C9BC /* Event.swift */; };
+		7C31475619F8F9F2003B12F1 /* AppCoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C31475519F8F9F2003B12F1 /* AppCoreDataStack.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -69,6 +70,7 @@
 		79CF6D5F19DD8B6D00D2C9BC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 		79CF6D7619DD8BF000D2C9BC /* ActiveRecord.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ActiveRecord.xcodeproj; path = ../../ActiveRecord.xcodeproj; sourceTree = "<group>"; };
 		79CF6D8419DD8C7D00D2C9BC /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
+		7C31475519F8F9F2003B12F1 /* AppCoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppCoreDataStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				79CF6D5019DD8B6D00D2C9BC /* AppDelegate.swift */,
+				7C31475519F8F9F2003B12F1 /* AppCoreDataStack.swift */,
 				79CF6D5519DD8B6D00D2C9BC /* MasterViewController.swift */,
 				79CF6D5719DD8B6D00D2C9BC /* DetailViewController.swift */,
 				79CF6D8419DD8C7D00D2C9BC /* Event.swift */,
@@ -239,6 +242,7 @@
 				79CF6D5419DD8B6D00D2C9BC /* Example_Swift.xcdatamodeld in Sources */,
 				79CF6D5119DD8B6D00D2C9BC /* AppDelegate.swift in Sources */,
 				79CF6D5619DD8B6D00D2C9BC /* MasterViewController.swift in Sources */,
+				7C31475619F8F9F2003B12F1 /* AppCoreDataStack.swift in Sources */,
 				79CF6D5819DD8B6D00D2C9BC /* DetailViewController.swift in Sources */,
 				79CF6D8519DD8C7D00D2C9BC /* Event.swift in Sources */,
 			);

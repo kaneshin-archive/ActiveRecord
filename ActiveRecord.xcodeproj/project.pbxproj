@@ -11,6 +11,8 @@
 		790BAE1219BC141300B10B2D /* ActiveRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */; };
 		790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1919BC14E500B10B2D /* ActiveRecord.swift */; };
 		791070A419D1315D00649AD7 /* Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791070A319D1315D00649AD7 /* Driver.swift */; };
+		7C31475819F8FB73003B12F1 /* ActiveRecordConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C31475719F8FB73003B12F1 /* ActiveRecordConfig.swift */; };
+		7C3DA7C919F8D38100594E34 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3DA7C819F8D38100594E34 /* CoreDataStack.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +34,8 @@
 		790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRecordTests.swift; sourceTree = "<group>"; };
 		790BAE1919BC14E500B10B2D /* ActiveRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecord.swift; sourceTree = "<group>"; };
 		791070A319D1315D00649AD7 /* Driver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Driver.swift; sourceTree = "<group>"; };
+		7C31475719F8FB73003B12F1 /* ActiveRecordConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecordConfig.swift; sourceTree = "<group>"; };
+		7C3DA7C819F8D38100594E34 /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +79,7 @@
 			children = (
 				790BAE0719BC141300B10B2D /* ActiveRecord.h */,
 				790BAE1919BC14E500B10B2D /* ActiveRecord.swift */,
+				7C31475719F8FB73003B12F1 /* ActiveRecordConfig.swift */,
 				7910709E19D1303B00649AD7 /* CoreData */,
 				790BAE0519BC141300B10B2D /* Supporting Files */,
 			);
@@ -109,6 +114,7 @@
 		7910709E19D1303B00649AD7 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
+				7C3DA7C819F8D38100594E34 /* CoreDataStack.swift */,
 				791070A319D1315D00649AD7 /* Driver.swift */,
 			);
 			path = CoreData;
@@ -221,6 +227,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7C31475819F8FB73003B12F1 /* ActiveRecordConfig.swift in Sources */,
+				7C3DA7C919F8D38100594E34 /* CoreDataStack.swift in Sources */,
 				791070A419D1315D00649AD7 /* Driver.swift in Sources */,
 				790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */,
 			);

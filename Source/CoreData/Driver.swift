@@ -30,117 +30,18 @@ import CoreData
 
 class Driver: NSObject {
     
-    class var sharedInstance: Driver {
-        struct Singleton {
-            static let instance = Driver()
-        }
-        return Singleton.instance
-    }
+    var coreDataStack : CoreDataStack
     
     let kMaxConcurrentOperationCount = 1
-    var performOperationQueue: PerformOperationQueue
+    var driverOperationQueue: DriverOperationQueue
     
-    override init() {
-        self.performOperationQueue = PerformOperationQueue()
-        self.performOperationQueue.maxConcurrentOperationCount = kMaxConcurrentOperationCount
-        super.init()
+    init(coreDataStack: CoreDataStack) {
+        self.driverOperationQueue = DriverOperationQueue()
+        self.driverOperationQueue.maxConcurrentOperationCount = kMaxConcurrentOperationCount
+        self.coreDataStack = coreDataStack
     }
     
-    /// Main queue context
-    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
-        managedObjectContext.parentContext = self.writerManagedObjectContext
-        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
-
-        return managedObjectContext
-    }()
     
-    /// For Background Thread Context to Save.
-    private lazy var writerManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
-        managedObjectContext.persistentStoreCoordinator = coordinator
-        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
-        return managedObjectContext
-    }()
-    
-    /**
-    Get current thread context
-    
-    :returns: Current thread context
-    */
-    func context() -> NSManagedObjectContext? {
-        if NSThread.isMainThread() {
-            return Driver.sharedInstance.defaultManagedObjectContext
-        } else {
-            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
-            let threadDictionary = NSThread.currentThread().threadDictionary
-            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
-                return context
-            } else {
-                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
-                context.parentContext = Driver.sharedInstance.defaultManagedObjectContext
-                context.mergePolicy = NSOverwriteMergePolicy
-                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
-                return context
-            }
-        }
-    }
-    
-    // MARK: -
-    
-    private var automaticallyDeleteStoreOnMismatch: Bool = true
-    
-    lazy var defaultStoreName: String = {
-        var defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
-        if defaultName == nil {
-            defaultName = "DefaultStore.sqlite"
-        }
-        if !(defaultName!.hasSuffix("sqlite")) {
-            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
-        }
-        return defaultName!
-    }()
-
-    ///
-    lazy var applicationDocumentsDirectory: NSURL = {
-        let fileManager = NSFileManager.defaultManager()
-        let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls.last as NSURL
-    }()
-    
-    /// StoreURL
-    lazy var storeURL: NSURL = {
-        return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
-    }()
-    
-    lazy var managedObjectModel: NSManagedObjectModel = {
-        return NSManagedObjectModel.mergedModelFromBundles(nil)!
-    }()
-    
-    lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator? = {
-        var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
-        let url = self.storeURL
-        var error: NSError? = nil
-        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-            if self.automaticallyDeleteStoreOnMismatch {
-                NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
-                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-                    coordinator = nil
-                }
-            } else {
-                coordinator = nil
-            }
-        }
-        return coordinator
-    }()
     
     // MARK: - CRUD
     
@@ -223,9 +124,9 @@ class Driver: NSObject {
             var error: NSError? = nil
             parentContext.performBlock({ () -> Void in
                 if parentContext.save(&error) {
-                    if parentContext == self.defaultManagedObjectContext {
+                    if parentContext == self.coreDataStack.defaultManagedObjectContext {
                         println("Merge to MainQueueContext")
-                    } else if parentContext == self.writerManagedObjectContext {
+                    } else if parentContext == self.coreDataStack.writerManagedObjectContext {
                         println("Data stored")
                     } else {
                         println("Recursive save \(parentContext)")
@@ -280,7 +181,7 @@ class Driver: NSObject {
     
     func performBlockAndWait(#block: (Void -> Void)?) {
         if let block = block {
-            Driver.sharedInstance.context()?.performBlockAndWait(block)
+            self.coreDataStack.context()?.performBlockAndWait(block)
         }
     }
     
@@ -293,13 +194,13 @@ class Driver: NSObject {
     
     func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
         if let block = block {
-            let operation = PerformOperation { () -> Void in
-                self.context()?.performBlock({ () -> Void in
+            let operation = DriverOperation { () -> Void in
+                self.coreDataStack.context()?.performBlock({ () -> Void in
                     block(doSave: { () -> Void in
                         var objects: [AnyObject] = [AnyObject]()
                         let _objects: NSMutableSet = NSMutableSet()
                         
-                        if let localContext = self.context() {
+                        if let localContext = self.coreDataStack.context() {
                             _objects.addObjectsFromArray(localContext.insertedObjects.allObjects)
                             _objects.addObjectsFromArray(localContext.updatedObjects.allObjects)
                             _objects.addObjectsFromArray(localContext.deletedObjects.allObjects)
@@ -333,7 +234,7 @@ class Driver: NSObject {
                 })
                 return
             }
-            self.performOperationQueue.addOperation(operation)
+            self.driverOperationQueue.addOperation(operation)
         }
 
     }
@@ -342,13 +243,13 @@ class Driver: NSObject {
 // MARK: - Printable
 
 extension Driver: Printable {
-    override var description: String {
-        let description = "Stored URL: \(self.storeURL)"
+    override public var description: String {
+        let description = "Stored URL: \(self.coreDataStack.storeURL)"
         return description
     }
 }
 
-class PerformOperationQueue: NSOperationQueue {
+class DriverOperationQueue: NSOperationQueue {
     override func addOperation(op: NSOperation) {
         println("Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {
@@ -358,6 +259,6 @@ class PerformOperationQueue: NSOperationQueue {
     }
 }
 
-class PerformOperation: NSBlockOperation {
+class DriverOperation: NSBlockOperation {
     
 }

@@ -27,15 +27,27 @@ import CoreData
 
 public class ActiveRecord: NSObject {
     
+    
+    class var driver: Driver? {
+        if let coreDataStack = ActiveRecordConfig.sharedInstance.coreDataStack {
+        let driver = Driver(coreDataStack: coreDataStack)
+            return driver
+        } else {
+            return nil
+        }
+    }
+    
     /**
-    For perform in background queue (Don't asynchronous processing in block)
+    For perform in background queue (Don't do asynchronous processing in block)
     
     :param: block
     :param: faiure
     */
     public class func performBackgroundBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
-        Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
-            Driver.sharedInstance.performBlock(block: block, success: success, faiure: faiure)
+        if let driver = self.driver {
+            driver.driverOperationQueue.addOperationWithBlock { () -> Void in
+                driver.performBlock(block: block, success: success, faiure: faiure)
+            }
         }
     }
     
@@ -46,8 +58,10 @@ public class ActiveRecord: NSObject {
     :param: faiure
     */
     public class func performBackgroundBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
-        Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
-            Driver.sharedInstance.performBlockWaitSave(block: block, success: success, faiure: faiure)
+        if let driver = self.driver {
+            driver.driverOperationQueue.addOperationWithBlock { () -> Void in
+                driver.performBlockWaitSave(block: block, success: success, faiure: faiure)
+            }
         }
     }
 
@@ -58,54 +72,61 @@ public class ActiveRecord: NSObject {
     :param: faiure
     */
     public class func performBackgroundBlockAndWait(#block: (Void -> Void)?) {
-        Driver.sharedInstance.performOperationQueue.addOperationWithBlock { () -> Void in
-            Driver.sharedInstance.performBlockAndWait(block: block)
+        if let driver = self.driver {
+            driver.driverOperationQueue.addOperationWithBlock { () -> Void in
+                driver.performBlockAndWait(block: block)
+            }
         }
     }
 }
 
 
 public extension NSManagedObject {
+    
     public class func create(#entityName: String) -> NSManagedObject? {
-        return Driver.sharedInstance.create(entityName, context: Driver.sharedInstance.context())
+        return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.coreDataStack.context())
     }
     
     public func save() {
-        Driver.sharedInstance.save(self.managedObjectContext)
+        ActiveRecord.driver?.save(self.managedObjectContext)
     }
     
     public func delete() {
-        Driver.sharedInstance.delete(self)
+        ActiveRecord.driver?.delete(self)
     }
     
     public class func find(#entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
-        return Driver.sharedInstance.read(entityName, predicate: predicate, context: Driver.sharedInstance.context())
+        return ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context())
     }
     
     public class func findFirst(#entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
-        if let objects = Driver.sharedInstance.read(entityName, predicate: predicate, context: Driver.sharedInstance.context()) {
+        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context()) {
             return objects.first
         }
         return nil
     }
     
     public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
-        return Driver.sharedInstance.count(entityName, predicate: predicate, context: Driver.sharedInstance.context())
+        if let driver = ActiveRecord.driver {
+            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context())
+        } else {
+            return 0;
+        }
     }
     
 }
 
 public extension NSManagedObjectContext {
     public func save() {
-        Driver.sharedInstance.save(self)
+        ActiveRecord.driver?.save(self)
     }
     
     public class func save() {
-        Driver.sharedInstance.save(Driver.sharedInstance.context())
+        ActiveRecord.driver?.save(ActiveRecord.driver?.coreDataStack.context())
     }
     
     public class func context() -> NSManagedObjectContext? {
-        return Driver.sharedInstance.context()
+        return ActiveRecord.driver?.coreDataStack.context()
     }
 }
 
