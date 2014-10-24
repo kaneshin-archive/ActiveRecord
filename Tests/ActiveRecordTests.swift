@@ -40,7 +40,9 @@ class ActiveRecordTests: XCTestCase {
         var events = Event.find(entityName: eventEntityName)
         XCTAssertNotNil(events, "find does not fail")
         println("events count : \(events?.count)")
-        XCTAssertTrue(events?.count == nil || events?.count == 0, "should find none")
+        if let events = events {
+            XCTAssertTrue(events.count == 0, "should find none")
+        }
         
         // create
         var newEvent = Event.create(entityName: eventEntityName) as? Event
