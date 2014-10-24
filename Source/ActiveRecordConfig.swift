@@ -10,6 +10,7 @@ import Foundation
 
 public class ActiveRecordConfig {
 
+    /// Singleton instance.
     public class var sharedInstance: ActiveRecordConfig {
         struct Singleton {
             static let instance = ActiveRecordConfig()
@@ -17,6 +18,9 @@ public class ActiveRecordConfig {
         return Singleton.instance
     }
     
+    /**
+    *  CoreDataStack implementation to use for the app or test.
+    */
     public var coreDataStack: CoreDataStack?
 }
 

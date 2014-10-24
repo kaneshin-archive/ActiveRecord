@@ -14,7 +14,8 @@ public class CoreDataStack: NSObject {
     public override init() {
         super.init()
     }
-    
+
+    /// Main queue context
     public var defaultManagedObjectContext: NSManagedObjectContext? {
         get {
             assert(false, "must implement property defaultManagedObjectContext")
@@ -23,6 +24,7 @@ public class CoreDataStack: NSObject {
         set {}
     }
 
+    /// Context for writing to the PersistentStore
     public var writerManagedObjectContext: NSManagedObjectContext? {
         get {
             assert(false, "must implement property writerManagedObjectContext")
@@ -31,6 +33,7 @@ public class CoreDataStack: NSObject {
         set {}
     }
     
+    /// PersistentStoreCoordinator
     public var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
         get {
             assert(false, "must implement property persistentStoreCoordinator")
@@ -38,6 +41,7 @@ public class CoreDataStack: NSObject {
         }
     }
     
+    /// ManagedObjectModel
     public var managedObjectModel: NSManagedObjectModel? {
         get {
             assert(false, "must implement property managedObjectModel")
@@ -46,6 +50,7 @@ public class CoreDataStack: NSObject {
         set {}
     }
 
+    /// Store URL
     public var storeURL: NSURL {
         get {
             assert(false, "must implement property storeURL")
@@ -54,6 +59,12 @@ public class CoreDataStack: NSObject {
         set {}
     }
 
+    /**
+    Returns a NSManagedObjectContext associated to currennt thread.
+    Creates a new one if there aren't any yet.
+    
+    :returns: A managed object context associated to current thread.
+    */
     func context() -> NSManagedObjectContext? {
         if NSThread.isMainThread() {
             return self.defaultManagedObjectContext

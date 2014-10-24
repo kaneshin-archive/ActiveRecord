@@ -16,7 +16,6 @@ class AppCoreDataStack : CoreDataStack {
         super.init()
     }
 
-    /// Main queue context
     private lazy var lazyDefaultManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
@@ -29,6 +28,7 @@ class AppCoreDataStack : CoreDataStack {
         return managedObjectContext
     }()
     
+    /// Main queue context
     override var defaultManagedObjectContext: NSManagedObjectContext? {
         get {
             return self.lazyDefaultManagedObjectContext
@@ -37,7 +37,6 @@ class AppCoreDataStack : CoreDataStack {
     }
     
     
-    /// For Background Thread Context to Save.
     private lazy var lazyWriterManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
@@ -49,6 +48,7 @@ class AppCoreDataStack : CoreDataStack {
         return managedObjectContext
     }()
 
+    /// Context for writing to the PersistentStore
     override var writerManagedObjectContext: NSManagedObjectContext? {
         get {
             return self.lazyWriterManagedObjectContext
@@ -56,7 +56,6 @@ class AppCoreDataStack : CoreDataStack {
         set { }
     }
     
-    /// PersistentStoreCoordinator
     lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
 
         if let managedObjectModel = self.managedObjectModel {
@@ -78,6 +77,7 @@ class AppCoreDataStack : CoreDataStack {
         return nil;
     }()
     
+    /// PersistentStoreCoordinator
     override var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
         get {
             return self.lazyPersistentStoreCoordinator
@@ -86,11 +86,11 @@ class AppCoreDataStack : CoreDataStack {
     }
     
     
-    /// ManagedObjectModel
     lazy var lazyManagedObjectModel: NSManagedObjectModel = {
         return NSManagedObjectModel.mergedModelFromBundles(nil)!
     }()
     
+    /// ManagedObjectModel
     override var managedObjectModel: NSManagedObjectModel? {
         get {
             return self.lazyManagedObjectModel
@@ -98,11 +98,11 @@ class AppCoreDataStack : CoreDataStack {
         set { }
     }
     
-    /// StoreURL
     lazy var lazyStoreURL: NSURL = {
         return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
     }()
 
+    /// Store URL
     override var storeURL: NSURL {
         get {
             return self.lazyStoreURL
@@ -113,7 +113,7 @@ class AppCoreDataStack : CoreDataStack {
     
     private let automaticallyDeleteStoreOnMismatch: Bool = true
     
-    /// detault store name
+    /// default store name
     lazy var defaultStoreName: String = {
         var defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
         if defaultName == nil {
@@ -125,7 +125,7 @@ class AppCoreDataStack : CoreDataStack {
         return defaultName!
     }()
 
-    /// applicationDocumentsDirectory
+    /// Application's document directory
     lazy var applicationDocumentsDirectory: NSURL = {
         let fileManager = NSFileManager.defaultManager()
         let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
