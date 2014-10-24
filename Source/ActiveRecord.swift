@@ -88,26 +88,22 @@ public extension NSManagedObject {
     }
     
     public func save() {
-        ActiveRecord.driver?.save(self.managedObjectContext)
+        var error: NSError? = nil
+        ActiveRecord.driver?.save(self.managedObjectContext, error: &error)
     }
     
     public func delete() {
         ActiveRecord.driver?.delete(self)
     }
     
-    public class func find(#entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
-        var error: NSError? = nil
-        return ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
-    }
-    
-    public class func find(#entityName: String, predicate: NSPredicate? = nil, offset: Int, limit: Int) -> [AnyObject]? {
+    public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0) -> [AnyObject]? {
         var error: NSError? = nil
         return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
     }
     
-    public class func findFirst(#entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
+    public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> AnyObject? {
         var error: NSError? = nil
-        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context(), error: &error) {
+        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: 0, limit: 1, context: ActiveRecord.driver?.coreDataStack.context(), error: &error) {
             return objects.first
         }
         return nil
@@ -130,11 +126,13 @@ public extension NSManagedObject {
 
 public extension NSManagedObjectContext {
     public func save() {
-        ActiveRecord.driver?.save(self)
+        var error: NSError? = nil
+        ActiveRecord.driver?.save(self, error: &error)
     }
     
     public class func save() {
-        ActiveRecord.driver?.save(ActiveRecord.driver?.coreDataStack.context())
+        var error: NSError? = nil
+        ActiveRecord.driver?.save(ActiveRecord.driver?.coreDataStack.context(), error: &error)
     }
     
     public class func context() -> NSManagedObjectContext? {

@@ -68,33 +68,18 @@ class Driver: NSObject {
     :param: predicate
     :param: sortDescriptor
     :param: context
-    :param: error
     
     :returns: array of managed objects. nil if an error occurred.
     */
-    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
-        return self.read(entityName, predicate: predicate, sortDescriptor: sortDescriptor, offset: 0, limit: 0, context: context, error: error)
-    }
-    
-    /**
-    Read Entity
-    
-    :param: entityName
-    :param: predicate
-    :param: sortDescriptor
-    :param: context
-    
-    :returns: array of managed objects. nil if an error occurred.
-    */
-    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, offset: Int, limit: Int, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
         if let context = context {
             var results: [AnyObject]? = nil
             var request = NSFetchRequest(entityName: entityName)
             if predicate != nil {
                 request.predicate = predicate
             }
-            if sortDescriptor != nil {
-                request.predicate = predicate
+            if sortDescriptors != nil {
+                request.sortDescriptors = sortDescriptors
             }
             if offset > 0 {
                 request.fetchOffset = offset
@@ -153,11 +138,10 @@ class Driver: NSObject {
     
     :param: context
     */
-    func recursiveSave(context: NSManagedObjectContext?) {
+    func recursiveSave(context: NSManagedObjectContext?, error: NSErrorPointer) {
         if let parentContext = context?.parentContext {
-            var error: NSError? = nil
             parentContext.performBlock({ () -> Void in
-                if parentContext.save(&error) {
+                if parentContext.save(error) {
                     if parentContext == self.coreDataStack.defaultManagedObjectContext {
                         println("Merge to MainQueueContext")
                     } else if parentContext == self.coreDataStack.writerManagedObjectContext {
@@ -165,30 +149,29 @@ class Driver: NSObject {
                     } else {
                         println("Recursive save \(parentContext)")
                     }
-                    self.recursiveSave(parentContext)
+                    self.recursiveSave(parentContext, error: error)
                 }
             })
         }
     }
     
-    func save(context: NSManagedObjectContext?) -> Bool {
+    func save(context: NSManagedObjectContext?, error: NSErrorPointer) -> Bool {
         if let context = context {
             if context.hasChanges {
-                var error: NSError? = nil
                 context.performBlockAndWait({ () -> Void in
-                    if context.save(&error) {
-                        self.recursiveSave(context)
+                    if context.save(error) {
+                        self.recursiveSave(context, error: error)
                     }
                 })
-                if error != nil {
-                    println("Save failed : \(error)")
+                if error.memory != nil {
+                    println("Save failed : \(error.memory?.localizedDescription)")
                     return false
                 } else {
                     println("Save Success")
                     return true
                 }
             } else {
-                println("Save Success")
+                println("Save Success (No changes)")
                 return true
             }
         } else {
@@ -241,7 +224,7 @@ class Driver: NSObject {
                             _objects.addObjectsFromArray(localContext.registeredObjects.allObjects)
                             objects = _objects.allObjects
                             
-                            var error: NSError?
+                            var error: NSError? = nil
                             
                             if localContext.obtainPermanentIDsForObjects(objects, error: &error) {
                                 if error != nil {
@@ -250,7 +233,7 @@ class Driver: NSObject {
                                         return
                                     })
                                 } else {
-                                    if self.save(localContext) {
+                                    if self.save(localContext, error: &error) {
                                         dispatch_sync(dispatch_get_main_queue(), { () -> Void in
                                             success?()
                                             return
