@@ -96,24 +96,36 @@ public extension NSManagedObject {
     }
     
     public class func find(#entityName: String, predicate: NSPredicate? = nil) -> [AnyObject]? {
-        return ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context())
+        var error: NSError? = nil
+        return ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
+    }
+    
+    public class func find(#entityName: String, predicate: NSPredicate? = nil, offset: Int, limit: Int) -> [AnyObject]? {
+        var error: NSError? = nil
+        return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
     }
     
     public class func findFirst(#entityName: String, predicate: NSPredicate? = nil) -> AnyObject? {
-        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context()) {
+        var error: NSError? = nil
+        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context(), error: &error) {
             return objects.first
         }
         return nil
     }
     
+    public class func find(#entityName: String, fetchRequest: NSFetchRequest) -> [AnyObject]? {
+        var error: NSError? = nil
+        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
+    }
+    
     public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
         if let driver = ActiveRecord.driver {
-            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context())
+            var error: NSError? = nil
+            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
         } else {
             return 0;
         }
     }
-    
 }
 
 public extension NSManagedObjectContext {

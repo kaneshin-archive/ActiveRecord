@@ -60,6 +60,21 @@ class Driver: NSObject {
             return nil
         }
     }
+
+    /**
+    Read Entity
+    
+    :param: entityName
+    :param: predicate
+    :param: sortDescriptor
+    :param: context
+    :param: error
+    
+    :returns: array of managed objects. nil if an error occurred.
+    */
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
+        return self.read(entityName, predicate: predicate, sortDescriptor: sortDescriptor, offset: 0, limit: 0, context: context, error: error)
+    }
     
     /**
     Read Entity
@@ -69,12 +84,11 @@ class Driver: NSObject {
     :param: sortDescriptor
     :param: context
     
-    :returns:
+    :returns: array of managed objects. nil if an error occurred.
     */
-    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, context: NSManagedObjectContext?) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptor: NSSortDescriptor? = nil, offset: Int, limit: Int, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
         if let context = context {
             var results: [AnyObject]? = nil
-            var error: NSError? = nil
             var request = NSFetchRequest(entityName: entityName)
             if predicate != nil {
                 request.predicate = predicate
@@ -82,13 +96,35 @@ class Driver: NSObject {
             if sortDescriptor != nil {
                 request.predicate = predicate
             }
-            results = context.executeFetchRequest(request, error: &error)
-            if results == nil {
+            if offset > 0 {
+                request.fetchOffset = offset
             }
-            return results
+            if limit > 0 {
+                request.fetchLimit = limit
+            }
+            return context.executeFetchRequest(request, error: error)
         } else {
             return nil
         }
+    }
+    
+    /**
+    Read Entity with fetchRequest
+    
+    :param: fetchRequest
+    :param: context
+    :param: error
+    
+    :returns: array of managed objects. nil if an error occurred.
+    */
+    func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [AnyObject]? {
+        let ctx = context != nil ? context : self.coreDataStack.context()
+        var results: [AnyObject]? = nil
+
+        if let ctx = ctx {
+            return ctx.executeFetchRequest(fetchRequest, error: error)
+        }
+        return nil
     }
     
     /**
@@ -100,15 +136,13 @@ class Driver: NSObject {
     
     :returns:
     */
-    func count(entityName: String, predicate: NSPredicate? = nil,context: NSManagedObjectContext?) -> Int {
+    func count(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext?, error: NSErrorPointer) -> Int {
         if let context = context {
-            var results: [AnyObject]? = nil
-            var error: NSError? = nil
             var request = NSFetchRequest(entityName: entityName)
             if predicate != nil {
                 request.predicate = predicate
             }
-            return context.countForFetchRequest(request, error: &error)
+            return context.countForFetchRequest(request, error: error)
         } else {
             return 0
         }
@@ -171,8 +205,8 @@ class Driver: NSObject {
         }
     }
     
-    func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) {
-        if let objects = read(entityName, predicate: predicate, context: context) as? [NSManagedObject] {
+    func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext, error: NSErrorPointer) {
+        if let objects = read(entityName, predicate: predicate, context: context, error: error) as? [NSManagedObject] {
             for object: NSManagedObject in objects {
                 delete(object)
             }
