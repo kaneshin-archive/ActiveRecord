@@ -21,17 +21,37 @@
 // THE SOFTWARE.
 
 import XCTest
+import ActiveRecord
+import CoreData
 
 class ActiveRecordTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        ActiveRecordConfig.sharedInstance.coreDataStack = TestCoreDataStack()
     }
     
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
+    }
+    
+    func testCrud() {
+        let eventEntityName = "Event"
+        var events = Event.find(entityName: eventEntityName)
+        println("events count : \(events?.count)")
+        XCTAssertTrue(events?.count == nil || events?.count == 0, "should find none")
+        
+        var newEvent = Event.create(entityName: eventEntityName) as? Event
+        newEvent?.title = "eat"
+        newEvent?.timeStamp = NSDate()
+        NSManagedObjectContext.save()
+        XCTAssertNotNil(newEvent, "new entity should be created")
+        
+        var fetchedEvent = Event.findFirst(entityName: eventEntityName) as? Event
+        XCTAssertNotNil(fetchedEvent, "should find created event")
+        if let fetchedEvent = fetchedEvent {
+            XCTAssertEqual(fetchedEvent.title, "eat", "title should be eat")
+        }
     }
     
     func testExample() {

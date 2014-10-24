@@ -53,7 +53,6 @@ public class CoreDataStack: NSObject {
     /// Store URL
     public var storeURL: NSURL {
         get {
-            assert(false, "must implement property storeURL")
             return NSURL()
         }
         set {}
