@@ -82,7 +82,31 @@ public class CoreDataStack: NSObject {
         }
     }
     
+
+    /**
+    Check if migration is needed.
     
+    :returns: true if migration is needed. false if not needed (includes case when persistent store is not found).
+    */
+    public func isRequiredMigration() -> Bool {
+        var error: NSError? = nil
+        let storeURL = self.storeURL
+
+        // find the persistent store.
+        if storeURL.checkResourceIsReachableAndReturnError(&error) {
+            println("Persistent store not found : \(error?.localizedDescription)")
+            return false
+        }
+        
+        // check compatibility
+        let sourceMetaData = NSPersistentStoreCoordinator.metadataForPersistentStoreOfType(NSSQLiteStoreType, URL: storeURL, error: &error)
+        if let managedObjectModel = self.managedObjectModel {
+            let isCompatible: Bool = managedObjectModel.isConfiguration(nil, compatibleWithStoreMetadata: sourceMetaData)
+            return isCompatible
+        } else {
+            fatalError("Could not get managed object model")
+        }
+    }
 }
 
 
