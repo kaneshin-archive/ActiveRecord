@@ -57,29 +57,57 @@ public class CoreDataStack: NSObject {
         }
         set {}
     }
+    
+
+    private lazy var operationQueueContextDictionary: Dictionary<NSOperationQueue, NSManagedObjectContext> = {
+        return [NSOperationQueue: NSManagedObjectContext]()
+    }()
 
     /**
-    Returns a NSManagedObjectContext associated to currennt thread.
+
+    Returns a NSManagedObjectContext associated to currennt operation queue.
     Creates a new one if there aren't any yet.
-    
-    :returns: A managed object context associated to current thread.
+
+    :returns: A managed object context associated to current operation queue.
     */
     func context() -> NSManagedObjectContext? {
-        if NSThread.isMainThread() {
-            return self.defaultManagedObjectContext
-        } else {
-            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
-            let threadDictionary = NSThread.currentThread().threadDictionary
-            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+
+        // context associated to operation queue
+        
+        if let queue = NSOperationQueue.currentQueue() {
+            if (queue == NSOperationQueue.mainQueue()) {
+                return self.defaultManagedObjectContext
+            } else if let context = self.operationQueueContextDictionary[queue] {
                 return context
             } else {
-                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+                let context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
                 context.parentContext = self.defaultManagedObjectContext
                 context.mergePolicy = NSOverwriteMergePolicy
-                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+                self.operationQueueContextDictionary[queue] = context
                 return context
             }
         }
+        
+        assert(false, "Managed object context not found. Managed object contexts should be created in an operation queue.")
+        return nil
+        
+// "context for current thread" method should not be used :
+//        // context associated to thread
+//        if NSThread.isMainThread() {
+//            return self.defaultManagedObjectContext
+//        } else {
+//            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
+//            let threadDictionary = NSThread.currentThread().threadDictionary
+//            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+//                return context
+//            } else {
+//                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+//                context.parentContext = self.defaultManagedObjectContext
+//                context.mergePolicy = NSOverwriteMergePolicy
+//                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+//                return context
+//            }
+//        }
     }
     
 

@@ -49,46 +49,43 @@ public class ActiveRecord: NSObject {
     }
     
     /**
-    For perform in background queue (Don't do asynchronous processing in block)
-    
-    :param: block
-    :param: faiure
-    */
-    public class func performBackgroundBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
-        if let driver = self.driver {
-            driver.driverOperationQueue.addOperationWithBlock { () -> Void in
-                driver.performBlock(block: block, success: success, faiure: faiure)
-            }
-        }
-    }
-    
-    /**
     For peform in background queue : Manually call timing of save.(Directed to asynchronous processing in block)
-   
+    
     :param: block
-    :param: faiure
+    :param: failure
     */
-    public class func performBackgroundBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+    public class func performBackgroundBlock(#block: (() -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
-            driver.driverOperationQueue.addOperationWithBlock { () -> Void in
-                driver.performBlockWaitSave(block: block, success: success, faiure: faiure)
-            }
+            driver.performBlock(block: block, success: success, failure: failure)
         }
     }
-
+    
+    
     /**
     For perform in background queue
     
     :param: block
-    :param: faiure
+    :param: failure
     */
-    public class func performBackgroundBlockAndWait(#block: (Void -> Void)?) {
+    public class func performBackgroundBlockAndWait(#block: (Void -> Void)?, error: NSErrorPointer) -> Bool {
         if let driver = self.driver {
-            driver.driverOperationQueue.addOperationWithBlock { () -> Void in
-                driver.performBlockAndWait(block: block)
-            }
+            return driver.performBlockAndWait(block: block, error: error)
+        }
+        return false
+    }
+    
+    /**
+    For perform in background queue (Don't do asynchronous processing in block)
+    
+    :param: block
+    :param: failure
+    */
+    public class func performBackgroundBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?) {
+        if let driver = self.driver {
+            driver.performBlockWaitSave(block: block, success: success, failure: failure)
         }
     }
+
 }
 
 

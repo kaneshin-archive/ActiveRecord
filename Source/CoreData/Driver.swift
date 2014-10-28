@@ -147,18 +147,28 @@ class Driver: NSObject {
     */
     private func recursiveSave(context: NSManagedObjectContext?, error: NSErrorPointer) {
         if let parentContext = context?.parentContext {
-            parentContext.performBlock({ () -> Void in
-                if parentContext.save(error) {
-                    if parentContext == self.coreDataStack.defaultManagedObjectContext {
-                        println("Merge to MainQueueContext")
-                    } else if parentContext == self.coreDataStack.writerManagedObjectContext {
-                        println("Data stored")
-                    } else {
-                        println("Recursive save \(parentContext)")
+            if (parentContext == self.coreDataStack.writerManagedObjectContext) {
+                parentContext.performBlock({ () -> Void in
+                    if parentContext.save(error) {
+                        if parentContext == self.coreDataStack.writerManagedObjectContext {
+                            println("Data stored")
+                        }
+                        self.recursiveSave(parentContext, error: error)
                     }
-                    self.recursiveSave(parentContext, error: error)
-                }
-            })
+                })
+            } else {
+                parentContext.performBlockAndWait({ () -> Void in
+                    if parentContext.save(error) {
+                        if parentContext == self.coreDataStack.defaultManagedObjectContext {
+                            println("Merge to MainQueueContext")
+                        } else {
+                            println("Recursive save \(parentContext)")
+                        }
+                        
+                        self.recursiveSave(parentContext, error: error)
+                    }
+                })
+            }
         }
     }
     
@@ -224,64 +234,61 @@ class Driver: NSObject {
         }
     }
     
-    func performBlockAndWait(#block: (Void -> Void)?) {
-        if let block = block {
-            self.coreDataStack.context()?.performBlockAndWait(block)
-        }
-    }
-    
-    func performBlock(#block: (() -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+    func performBlock(#block: (() -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         self.performBlockWaitSave(block: { (doSave) -> Void in
             block?()
             doSave()
-        }, success: success, faiure: faiure)
+        }, success: success, failure: failure, waitUntilFinished: waitUntilFinished)
     }
     
-    func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, faiure: ((error: NSError?) -> Void)?) {
+    func performBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
+        var result: Bool = true
+        var _error = error
+        self.performBlock(block: block, success: { () -> Void in
+        }, failure: { (error) -> Void in
+            result = false
+            _error.memory = error
+        }, waitUntilFinished: true)
+        return result
+    }
+    
+    func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
-                self.coreDataStack.context()?.performBlock({ () -> Void in
+                if let localContext = self.coreDataStack.context() {
                     block(doSave: { () -> Void in
-                        var objects: [AnyObject] = [AnyObject]()
-                        let _objects: NSMutableSet = NSMutableSet()
-                        
-                        if let localContext = self.coreDataStack.context() {
-                            _objects.addObjectsFromArray(localContext.insertedObjects.allObjects)
-                            _objects.addObjectsFromArray(localContext.updatedObjects.allObjects)
-                            _objects.addObjectsFromArray(localContext.deletedObjects.allObjects)
-                            _objects.addObjectsFromArray(localContext.registeredObjects.allObjects)
-                            objects = _objects.allObjects
-                            
-                            var error: NSError? = nil
-                            
-                            if localContext.obtainPermanentIDsForObjects(objects, error: &error) {
-                                if error != nil {
-                                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                        faiure?(error: error)
-                                        return
-                                    })
-                                } else {
-                                    if self.save(localContext, error: &error) {
-                                        dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                            success?()
-                                            return
-                                        })
-                                    }
-                                }
-                            } else {
-                                dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                                    faiure?(error: error)
+                        var error: NSError? = nil
+                        if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
+                            if error != nil {
+                                dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                    failure?(error: error)
                                     return
                                 })
+                            } else {
+                                if self.save(localContext, error: &error) {
+                                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                        success?()
+                                        return
+                                    })
+                                }
                             }
+                        } else {
+                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                                failure?(error: error)
+                                return
+                            })
                         }
                     })
-                })
-                return
+                    return
+                }
             }
-            self.driverOperationQueue.addOperation(operation)
+            
+            if waitUntilFinished {
+                self.driverOperationQueue.addOperations([operation], waitUntilFinished: true)
+            } else {
+                self.driverOperationQueue.addOperation(operation)
+            }
         }
-
     }
 }
 

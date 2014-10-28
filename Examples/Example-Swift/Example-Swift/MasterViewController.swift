@@ -44,43 +44,27 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         operation.addOperationWithBlock { () -> Void in
         }
         
-            var id: NSManagedObjectID?
-            #if false
-            ActiveRecord.performBackgroundBlock(block: { () -> Void in
+        var id: NSManagedObjectID?
+        ActiveRecord.performBackgroundBlockWaitSave(block: { (doSave) -> Void in
+// uncomment to run in another background thread
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
+
                 for i in 0...5 {
                     let entity = self.fetchedResultsController.fetchRequest.entity
                     var newEvent = Event.create(entityName: entity!.name!) as? Event
-                
+                    
                     newEvent!.timeStamp = NSDate()
                     id = newEvent?.objectID
                 }
-                }, success: { () -> Void in
-                    if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
-                        println(object)
-                    }
-                }) { (error) -> Void in
+                doSave()
+//            })
+        }, success: { () -> Void in
+            println(id)
+            if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
+                println(object)
             }
-                #else
-            ActiveRecord.performBackgroundBlockWaitSave(block: { (doSave) -> Void in
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
-                    for i in 0...5 {
-                        let entity = self.fetchedResultsController.fetchRequest.entity
-                        var newEvent = Event.create(entityName: entity!.name!) as? Event
-                        
-                        newEvent!.timeStamp = NSDate()
-                        id = newEvent?.objectID
-                    }
-                    doSave()
-                })
-                }, success: { () -> Void in
-                    println(id)
-                    if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
-                        println(object)
-                    }
-                }, faiure: { (error) -> Void in
-                    
-            })
-                #endif
+        }, failure: { (error) -> Void in
+        })
     }
 
     // MARK: - Segues

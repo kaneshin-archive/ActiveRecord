@@ -60,16 +60,17 @@ class AppCoreDataStack : CoreDataStack {
 
         if let managedObjectModel = self.managedObjectModel {
             var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
-            let url = self.storeURL
             var error: NSError? = nil
-            if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-                if self.automaticallyDeleteStoreOnMismatch {
-                    NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
-                    if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+            if let url = self.storeURL {
+                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+                    if self.automaticallyDeleteStoreOnMismatch {
+                        NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
+                        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+                            coordinator = nil
+                        }
+                    } else {
                         coordinator = nil
                     }
-                } else {
-                    coordinator = nil
                 }
             }
             return coordinator
@@ -103,7 +104,7 @@ class AppCoreDataStack : CoreDataStack {
     }()
 
     /// Store URL
-    override var storeURL: NSURL {
+    override var storeURL: NSURL? {
         get {
             return self.lazyStoreURL
         }
