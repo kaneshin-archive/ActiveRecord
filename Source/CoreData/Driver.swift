@@ -138,7 +138,14 @@ class Driver: NSObject {
     
     :param: context
     */
-    func recursiveSave(context: NSManagedObjectContext?, error: NSErrorPointer) {
+    
+    /**
+    Recursively save parent contexts
+    
+    :param: context Context to retrieve parents from.
+    :param: error
+    */
+    private func recursiveSave(context: NSManagedObjectContext?, error: NSErrorPointer) {
         if let parentContext = context?.parentContext {
             parentContext.performBlock({ () -> Void in
                 if parentContext.save(error) {
@@ -155,6 +162,14 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Save context and recursively save all parent contexts
+    
+    :param: context
+    :param: error
+    
+    :returns: true if success
+    */
     func save(context: NSManagedObjectContext?, error: NSErrorPointer) -> Bool {
         if let context = context {
             if context.hasChanges {
@@ -180,6 +195,11 @@ class Driver: NSObject {
         }
     }
 
+    /**
+    Delete a managed object
+    
+    :param: object managed object
+    */
     func delete(object: NSManagedObject?) {
         if let object = object {
             if let context = object.managedObjectContext {
@@ -188,6 +208,14 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Delete all managed objects using predicate
+    
+    :param: entityName
+    :param: predicate
+    :param: context
+    :param: error
+    */
     func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext, error: NSErrorPointer) {
         if let objects = read(entityName, predicate: predicate, context: context, error: error) as? [NSManagedObject] {
             for object: NSManagedObject in objects {
