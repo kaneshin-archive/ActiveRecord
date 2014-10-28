@@ -27,13 +27,24 @@ import CoreData
 
 public class ActiveRecord: NSObject {
     
+    /// private sharedInstance
+    private class var sharedInstance : ActiveRecord {
+        struct Static {
+            static let instance : ActiveRecord = ActiveRecord()
+        }
+        return Static.instance
+    }
     
-    class var driver: Driver? {
+    /// instance variable for static variable driver
+    private var sharedDriver: Driver?
+
+    private class var driver: Driver? {
+        return ActiveRecord.sharedInstance.sharedDriver
+    }
+    
+    override init() {
         if let coreDataStack = ActiveRecordConfig.sharedInstance.coreDataStack {
-        let driver = Driver(coreDataStack: coreDataStack)
-            return driver
-        } else {
-            return nil
+            self.sharedDriver = Driver(coreDataStack: coreDataStack)
         }
     }
     
