@@ -51,9 +51,9 @@ public class CoreDataStack: NSObject {
     }
 
     /// Store URL
-    public var storeURL: NSURL {
+    public var storeURL: NSURL? {
         get {
-            return NSURL()
+            return nil
         }
         set {}
     }
@@ -90,22 +90,24 @@ public class CoreDataStack: NSObject {
     */
     public func isRequiredMigration() -> Bool {
         var error: NSError? = nil
-        let storeURL = self.storeURL
 
-        // find the persistent store.
-        if storeURL.checkResourceIsReachableAndReturnError(&error) {
-            println("Persistent store not found : \(error?.localizedDescription)")
-            return false
+        if let storeURL = self.storeURL {
+            // find the persistent store.
+            if storeURL.checkResourceIsReachableAndReturnError(&error) {
+                println("Persistent store not found : \(error?.localizedDescription)")
+                return false
+            }
+
+            // check compatibility
+            let sourceMetaData = NSPersistentStoreCoordinator.metadataForPersistentStoreOfType(NSSQLiteStoreType, URL: storeURL, error: &error)
+            if let managedObjectModel = self.managedObjectModel {
+                let isCompatible: Bool = managedObjectModel.isConfiguration(nil, compatibleWithStoreMetadata: sourceMetaData)
+                return isCompatible
+            } else {
+                fatalError("Could not get managed object model")
+            }
         }
-        
-        // check compatibility
-        let sourceMetaData = NSPersistentStoreCoordinator.metadataForPersistentStoreOfType(NSSQLiteStoreType, URL: storeURL, error: &error)
-        if let managedObjectModel = self.managedObjectModel {
-            let isCompatible: Bool = managedObjectModel.isConfiguration(nil, compatibleWithStoreMetadata: sourceMetaData)
-            return isCompatible
-        } else {
-            fatalError("Could not get managed object model")
-        }
+        return false
     }
 }
 

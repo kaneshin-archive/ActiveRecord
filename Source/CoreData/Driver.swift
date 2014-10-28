@@ -288,7 +288,7 @@ class Driver: NSObject {
 // MARK: - Printable
 
 extension Driver: Printable {
-    override public var description: String {
+    override var description: String {
         let description = "Stored URL: \(self.coreDataStack.storeURL)"
         return description
     }
