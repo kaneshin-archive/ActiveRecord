@@ -36,9 +36,9 @@ class Driver: NSObject {
     var driverOperationQueue: DriverOperationQueue
     
     init(coreDataStack: CoreDataStack) {
-        self.driverOperationQueue = DriverOperationQueue()
-        self.driverOperationQueue.maxConcurrentOperationCount = kMaxConcurrentOperationCount
         self.coreDataStack = coreDataStack
+        self.driverOperationQueue = DriverOperationQueue(parentContext: coreDataStack.defaultManagedObjectContext)
+        self.driverOperationQueue.maxConcurrentOperationCount = kMaxConcurrentOperationCount
     }
     
     
@@ -103,7 +103,7 @@ class Driver: NSObject {
     :returns: array of managed objects. nil if an error occurred.
     */
     func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [AnyObject]? {
-        let ctx = context != nil ? context : self.coreDataStack.context()
+        let ctx = context != nil ? context : self.context()
         var results: [AnyObject]? = nil
 
         if let ctx = ctx {
@@ -255,32 +255,31 @@ class Driver: NSObject {
     func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
-                if let localContext = self.coreDataStack.context() {
-                    block(doSave: { () -> Void in
-                        var error: NSError? = nil
-                        if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
-                            if error != nil {
-                                dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                    failure?(error: error)
-                                    return
-                                })
-                            } else {
-                                if self.save(localContext, error: &error) {
-                                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                        success?()
-                                        return
-                                    })
-                                }
-                            }
-                        } else {
-                            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                var localContext = self.driverOperationQueue.context
+                block(doSave: { () -> Void in
+                    var error: NSError? = nil
+                    if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
+                        if error != nil {
+                            dispatch_sync(dispatch_get_main_queue(), { () -> Void in
                                 failure?(error: error)
                                 return
                             })
+                        } else {
+                            if self.save(localContext, error: &error) {
+                                dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                    success?()
+                                    return
+                                })
+                            }
                         }
-                    })
-                    return
-                }
+                    } else {
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            failure?(error: error)
+                            return
+                        })
+                    }
+                })
+                return
             }
             
             if waitUntilFinished {
@@ -290,7 +289,27 @@ class Driver: NSObject {
             }
         }
     }
+    
+    /**
+    
+    Returns a NSManagedObjectContext associated to currennt operation queue.
+    Operation queues should be a Main Queue or a DriverOperationQueue
+    
+    :returns: A managed object context associated to current operation queue.
+    */
+    func context() -> NSManagedObjectContext? {
+        if let queue = NSOperationQueue.currentQueue() {
+            if queue == NSOperationQueue.mainQueue() {
+                return self.coreDataStack.defaultManagedObjectContext
+            } else if queue.isKindOfClass(DriverOperationQueue) {
+                return self.driverOperationQueue.context
+            }
+        }
+        assert(false, "Managed object context not found. Managed object contexts should be created in an DriverOperationQueue.")
+        return nil
+    }
 }
+    
 
 // MARK: - Printable
 
@@ -302,6 +321,17 @@ extension Driver: Printable {
 }
 
 class DriverOperationQueue: NSOperationQueue {
+    
+    var context: NSManagedObjectContext
+    
+    init(parentContext: NSManagedObjectContext?) {
+        let context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
+        context.parentContext = parentContext
+        context.mergePolicy = NSOverwriteMergePolicy
+        self.context = context
+        super.init()
+    }
+    
     override func addOperation(op: NSOperation) {
         println("Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {

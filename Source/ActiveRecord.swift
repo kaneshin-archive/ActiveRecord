@@ -85,14 +85,13 @@ public class ActiveRecord: NSObject {
             driver.performBlockWaitSave(block: block, success: success, failure: failure)
         }
     }
-
 }
 
 
 public extension NSManagedObject {
     
     public class func create(#entityName: String) -> NSManagedObject? {
-        return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.coreDataStack.context())
+        return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.context())
     }
     
     public func save() {
@@ -106,12 +105,12 @@ public extension NSManagedObject {
     
     public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0) -> [AnyObject]? {
         var error: NSError? = nil
-        return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
+        return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.context(), error: &error)
     }
     
     public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> AnyObject? {
         var error: NSError? = nil
-        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: 0, limit: 1, context: ActiveRecord.driver?.coreDataStack.context(), error: &error) {
+        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: 0, limit: 1, context: ActiveRecord.driver?.context(), error: &error) {
             return objects.first
         }
         return nil
@@ -119,13 +118,13 @@ public extension NSManagedObject {
     
     public class func find(#entityName: String, fetchRequest: NSFetchRequest) -> [AnyObject]? {
         var error: NSError? = nil
-        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
+        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.context(), error: &error)
     }
     
     public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
         if let driver = ActiveRecord.driver {
             var error: NSError? = nil
-            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.coreDataStack.context(), error: &error)
+            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.context(), error: &error)
         } else {
             return 0;
         }
@@ -140,11 +139,11 @@ public extension NSManagedObjectContext {
     
     public class func save() {
         var error: NSError? = nil
-        ActiveRecord.driver?.save(ActiveRecord.driver?.coreDataStack.context(), error: &error)
+        ActiveRecord.driver?.save(ActiveRecord.driver?.context(), error: &error)
     }
     
     public class func context() -> NSManagedObjectContext? {
-        return ActiveRecord.driver?.coreDataStack.context()
+        return ActiveRecord.driver?.context()
     }
 }
 
