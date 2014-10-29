@@ -210,7 +210,7 @@ class Driver: NSObject {
     
     :param: object managed object
     */
-    func delete(object: NSManagedObject?) {
+    func delete(#object: NSManagedObject?) {
         if let object = object {
             if let context = object.managedObjectContext {
                 context.deleteObject(object)
@@ -229,7 +229,7 @@ class Driver: NSObject {
     func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext, error: NSErrorPointer) {
         if let objects = read(entityName, predicate: predicate, context: context, error: error) as? [NSManagedObject] {
             for object: NSManagedObject in objects {
-                delete(object)
+                delete(object: object)
             }
         }
     }

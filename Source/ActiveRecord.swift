@@ -100,7 +100,7 @@ public extension NSManagedObject {
     }
     
     public func delete() {
-        ActiveRecord.driver?.delete(self)
+        ActiveRecord.driver?.delete(object: self)
     }
     
     public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0) -> [AnyObject]? {
