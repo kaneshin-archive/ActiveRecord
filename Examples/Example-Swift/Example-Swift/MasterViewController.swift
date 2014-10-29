@@ -44,7 +44,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         operation.addOperationWithBlock { () -> Void in
         }
         
-        var id: NSManagedObjectID?
+        var event: Event?
         ActiveRecord.performBackgroundBlockWaitSave(block: { (doSave) -> Void in
 // uncomment to run in another background thread
 //            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
@@ -54,14 +54,18 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                     var newEvent = Event.create(entityName: entity!.name!) as? Event
                     
                     newEvent!.timeStamp = NSDate()
-                    id = newEvent?.objectID
+                    event = newEvent
                 }
                 doSave()
 //            })
         }, success: { () -> Void in
-            println(id)
-            if let object = NSManagedObjectContext.context()?.existingObjectWithID(id!, error: nil) {
-                println(object)
+            if let event = event {
+                var id = event.objectID
+                println(id)
+                var error: NSError?
+                if let object = NSManagedObjectContext.context()?.existingObjectWithID(id, error: &error) {
+                    println(object.description)
+                }
             }
         }, failure: { (error) -> Void in
         })

@@ -180,12 +180,7 @@ class Driver: NSObject {
     
     :returns: true if success
     */
-    func save(context: NSManagedObjectContext?, error: NSErrorPointer) -> Bool {
-        // workaround for Objective-C passing nil for error
-        if error == nil {
-            var err: NSError? = nil
-            return self.save(context, error: &err)
-        }
+    func save(context: NSManagedObjectContext?, error: NSErrorPointer = AutoreleasingUnsafeMutablePointer()) -> Bool {
         
         if let context = context {
             if context.hasChanges {
