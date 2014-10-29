@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class ActiveRecordConfig {
+public class ActiveRecordConfig: NSObject {
 
     /// Singleton instance.
     public class var sharedInstance: ActiveRecordConfig {
