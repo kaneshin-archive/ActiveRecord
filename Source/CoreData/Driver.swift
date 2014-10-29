@@ -181,6 +181,12 @@ class Driver: NSObject {
     :returns: true if success
     */
     func save(context: NSManagedObjectContext?, error: NSErrorPointer) -> Bool {
+        // workaround for Objective-C passing nil for error
+        if error == nil {
+            var err: NSError? = nil
+            return self.save(context, error: &err)
+        }
+        
         if let context = context {
             if context.hasChanges {
                 context.performBlockAndWait({ () -> Void in
@@ -305,8 +311,29 @@ class Driver: NSObject {
                 return self.driverOperationQueue.context
             }
         }
-        assert(false, "Managed object context not found. Managed object contexts should be created in an DriverOperationQueue.")
-        return nil
+        
+        // temporarily use "context for current thread"
+        // context associated to thread
+        if NSThread.isMainThread() {
+            return self.coreDataStack.defaultManagedObjectContext
+        } else {
+            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
+            let threadDictionary = NSThread.currentThread().threadDictionary
+            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+                return context
+            } else {
+                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+                context.parentContext = self.coreDataStack.defaultManagedObjectContext
+                context.mergePolicy = NSOverwriteMergePolicy
+                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+                return context
+            }
+        }
+        
+
+// temporarily comment out assert
+//        assert(false, "Managed object context not found. Managed object contexts should be created in an DriverOperationQueue.")
+//        return nil
     }
 }
     

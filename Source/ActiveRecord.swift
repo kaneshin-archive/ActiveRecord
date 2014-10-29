@@ -141,7 +141,14 @@ public extension NSManagedObjectContext {
         var error: NSError? = nil
         ActiveRecord.driver?.save(ActiveRecord.driver?.context(), error: &error)
     }
-    
+
+    public class func save(error: NSErrorPointer) -> Bool {
+        if let driver =  ActiveRecord.driver {
+            return driver.save(ActiveRecord.driver?.context(), error: error)
+        }
+        return false
+    }
+
     public class func context() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.context()
     }
