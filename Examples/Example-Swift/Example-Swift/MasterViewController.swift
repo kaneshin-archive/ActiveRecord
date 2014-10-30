@@ -45,7 +45,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         }
         
         var event: Event?
-        ActiveRecord.performBackgroundBlockWaitSave({ (doSave) -> Void in
+        ActiveRecord.saveWithBackgroundBlockWaitSave({ (doSave) -> Void in
 // uncomment to run in another background thread
 //            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
 

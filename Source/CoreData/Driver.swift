@@ -235,17 +235,17 @@ class Driver: NSObject {
         }
     }
     
-    func performBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
-        self.performBlockWaitSave(block: { (doSave) -> Void in
+    func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+        self.saveWithBlockWaitSave(block: { (doSave) -> Void in
             block?()
             doSave()
         }, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: waitUntilFinished)
     }
     
-    func performBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
+    func saveWithBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
         var result: Bool = true
         var _error = error
-        self.performBlock(block: block, saveSuccess: { () -> Void in
+        self.saveWithBlock(block: block, saveSuccess: { () -> Void in
         }, saveFailure: { (error) -> Void in
             result = false
             _error.memory = error
@@ -253,7 +253,7 @@ class Driver: NSObject {
         return result
     }
     
-    func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    func saveWithBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 var localContext = self.driverOperationQueue.context
@@ -280,6 +280,22 @@ class Driver: NSObject {
                         })
                     }
                 })
+                return
+            }
+            
+            if waitUntilFinished {
+                self.driverOperationQueue.addOperations([operation], waitUntilFinished: true)
+            } else {
+                self.driverOperationQueue.addOperation(operation)
+            }
+        }
+    }
+    
+    func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool = false) {
+        if let block = block {
+            let operation = DriverOperation { () -> Void in
+                block()
+                completion?()
                 return
             }
             

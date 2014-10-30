@@ -54,9 +54,9 @@ public class ActiveRecord: NSObject {
     :param: block
     :param: failure
     */
-    public class func performBackgroundBlock(block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
+    public class func saveWithBackgroundBlock(block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
-            driver.performBlock(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
+            driver.saveWithBlock(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
         }
     }
     
@@ -67,9 +67,9 @@ public class ActiveRecord: NSObject {
     :param: block
     :param: failure
     */
-    public class func performBackgroundBlockAndWait(block: (Void -> Void)?, error: NSErrorPointer) -> Bool {
+    public class func saveWithBackgroundBlockAndWait(block: (Void -> Void)?, error: NSErrorPointer) -> Bool {
         if let driver = self.driver {
-            return driver.performBlockAndWait(block: block, error: error)
+            return driver.saveWithBlockAndWait(block: block, error: error)
         }
         return false
     }
@@ -80,11 +80,24 @@ public class ActiveRecord: NSObject {
     :param: block
     :param: failure
     */
-    public class func performBackgroundBlockWaitSave(block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
+    public class func saveWithBackgroundBlockWaitSave(block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
-            driver.performBlockWaitSave(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
+            driver.saveWithBlockWaitSave(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
         }
     }
+    
+    public class func performBackgroundBlock(block: (() -> Void)?, completion: (() -> Void)?) {
+        if let driver = self.driver {
+            return driver.performBlock(block: block, completion: completion)
+        }
+    }
+    
+    public class func performBackgroundBlockAndWait(block: (() -> Void)?, completion: (() -> Void)?) {
+        if let driver = self.driver {
+            return driver.performBlock(block: block, completion: completion, waitUntilFinished: true)
+        }
+    }
+
 }
 
 
