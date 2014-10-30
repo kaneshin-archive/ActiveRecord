@@ -235,25 +235,25 @@ class Driver: NSObject {
         }
     }
     
-    func performBlock(#block: (() -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    func performBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         self.performBlockWaitSave(block: { (doSave) -> Void in
             block?()
             doSave()
-        }, success: success, failure: failure, waitUntilFinished: waitUntilFinished)
+        }, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: waitUntilFinished)
     }
     
     func performBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
         var result: Bool = true
         var _error = error
-        self.performBlock(block: block, success: { () -> Void in
-        }, failure: { (error) -> Void in
+        self.performBlock(block: block, saveSuccess: { () -> Void in
+        }, saveFailure: { (error) -> Void in
             result = false
             _error.memory = error
         }, waitUntilFinished: true)
         return result
     }
     
-    func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    func performBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 var localContext = self.driverOperationQueue.context
@@ -262,20 +262,20 @@ class Driver: NSObject {
                     if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
                         if error != nil {
                             dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                failure?(error: error)
+                                saveFailure?(error: error)
                                 return
                             })
                         } else {
                             if self.save(localContext, error: &error) {
                                 dispatch_sync(dispatch_get_main_queue(), { () -> Void in
-                                    success?()
+                                    saveSuccess?()
                                     return
                                 })
                             }
                         }
                     } else {
                         dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                            failure?(error: error)
+                            saveFailure?(error: error)
                             return
                         })
                     }

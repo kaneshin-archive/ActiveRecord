@@ -58,7 +58,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                 }
                 doSave()
 //            })
-        }, success: { () -> Void in
+        }, saveSuccess: { () -> Void in
             if let event = event {
                 var id = event.objectID
                 println(id)
@@ -67,7 +67,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                     println(object.description)
                 }
             }
-        }, failure: { (error) -> Void in
+        }, saveFailure: { (error) -> Void in
         })
     }
 

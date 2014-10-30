@@ -54,9 +54,9 @@ public class ActiveRecord: NSObject {
     :param: block
     :param: failure
     */
-    public class func performBackgroundBlock(block: (() -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?) {
+    public class func performBackgroundBlock(block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
-            driver.performBlock(block: block, success: success, failure: failure)
+            driver.performBlock(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
         }
     }
     
@@ -80,9 +80,9 @@ public class ActiveRecord: NSObject {
     :param: block
     :param: failure
     */
-    public class func performBackgroundBlockWaitSave(block: ((doSave: (() -> Void)) -> Void)?, success: (() -> Void)?, failure: ((error: NSError?) -> Void)?) {
+    public class func performBackgroundBlockWaitSave(block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
-            driver.performBlockWaitSave(block: block, success: success, failure: failure)
+            driver.performBlockWaitSave(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
         }
     }
 }
