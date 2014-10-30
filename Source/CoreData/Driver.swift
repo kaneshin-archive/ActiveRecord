@@ -180,8 +180,12 @@ class Driver: NSObject {
     
     :returns: true if success
     */
-    func save(context: NSManagedObjectContext?, error: NSErrorPointer = AutoreleasingUnsafeMutablePointer()) -> Bool {
-        
+    func save(context: NSManagedObjectContext?, error: NSErrorPointer) -> Bool {
+        if error == nil {
+            var err: NSError? = nil
+            return self.save(context, error: &err)
+        }
+                
         if let context = context {
             if context.hasChanges {
                 context.performBlockAndWait({ () -> Void in
