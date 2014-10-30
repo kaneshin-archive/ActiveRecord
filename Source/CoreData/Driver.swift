@@ -295,7 +295,11 @@ class Driver: NSObject {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 block()
-                completion?()
+                if let completion = completion {
+                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                        completion()
+                    })
+                }
                 return
             }
             
