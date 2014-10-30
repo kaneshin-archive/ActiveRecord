@@ -49,10 +49,11 @@ public class ActiveRecord: NSObject {
     }
     
     /**
-    For peform in background queue : Manually call timing of save.(Directed to asynchronous processing in block)
+    Peform block in background queue and save : Manually call timing of save.
     
     :param: block
-    :param: failure
+    :param: saveSuccess
+    :param: saveFailure
     */
     public class func saveWithBackgroundBlock(block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
@@ -62,10 +63,11 @@ public class ActiveRecord: NSObject {
     
     
     /**
-    For perform in background queue
+    Perform block in background queue and save and wait till done.
     
     :param: block
-    :param: failure
+    :param: error
+    :returns: true if successfully saved.
     */
     public class func saveWithBackgroundBlockAndWait(block: (Void -> Void)?, error: NSErrorPointer) -> Bool {
         if let driver = self.driver {
@@ -75,10 +77,11 @@ public class ActiveRecord: NSObject {
     }
     
     /**
-    For perform in background queue (Don't do asynchronous processing in block)
+    Perform in background queue and save (Manually call timing of save.)
     
     :param: block
-    :param: failure
+    :param: saveSuccess
+    :param: saveFailure
     */
     public class func saveWithBackgroundBlockWaitSave(block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
@@ -86,15 +89,27 @@ public class ActiveRecord: NSObject {
         }
     }
     
+    /**
+    Perform in background queue.
+    
+    :param: block
+    :param: completion
+    */
     public class func performBackgroundBlock(block: (() -> Void)?, completion: (() -> Void)?) {
         if let driver = self.driver {
             return driver.performBlock(block: block, completion: completion)
         }
     }
     
-    public class func performBackgroundBlockAndWait(block: (() -> Void)?, completion: (() -> Void)?) {
+    /**
+    Perform in background queue and wait til done.
+    
+    :param: block
+    :param: completion
+    */
+    public class func performBackgroundBlockAndWait(block: (() -> Void)?) {
         if let driver = self.driver {
-            return driver.performBlock(block: block, completion: completion, waitUntilFinished: true)
+            return driver.performBlock(block: block, completion: nil, waitUntilFinished: true)
         }
     }
 
