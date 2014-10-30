@@ -86,13 +86,13 @@ public class ActiveRecord: NSObject {
         }
     }
     
-    public class func saveWithBackgroundBlock(block: (() -> Void)?, completion: (() -> Void)?) {
+    public class func performBackgroundBlock(block: (() -> Void)?, completion: (() -> Void)?) {
         if let driver = self.driver {
             return driver.performBlock(block: block, completion: completion)
         }
     }
     
-    public class func saveWithBackgroundBlockAndWait(block: (() -> Void)?, completion: (() -> Void)?) {
+    public class func performBackgroundBlockAndWait(block: (() -> Void)?, completion: (() -> Void)?) {
         if let driver = self.driver {
             return driver.performBlock(block: block, completion: completion, waitUntilFinished: true)
         }
