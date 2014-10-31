@@ -244,9 +244,9 @@ class Driver: NSObject {
     }
     
     func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
-        self.saveWithBlockWaitSave(block: { (doSave) -> Void in
+        self.saveWithBlockWaitSave(block: { (save) -> Void in
             block?()
-            doSave()
+            save()
         }, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: waitUntilFinished)
     }
     
@@ -261,11 +261,11 @@ class Driver: NSObject {
         return result
     }
     
-    func saveWithBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 var localContext = self.driverOperationQueue.context
-                block(doSave: { () -> Void in
+                block(save: { () -> Void in
                     var error: NSError? = nil
                     if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
                         if error != nil {

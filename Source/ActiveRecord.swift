@@ -23,8 +23,6 @@
 import Foundation
 import CoreData
 
-// MARK: - Setup
-
 public class ActiveRecord: NSObject {
     
     /// private sharedInstance
@@ -83,7 +81,7 @@ public class ActiveRecord: NSObject {
     :param: saveSuccess
     :param: saveFailure
     */
-    public class func saveWithBackgroundBlockWaitSave(block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
+    public class func saveWithBackgroundBlockWaitSave(block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
         if let driver = self.driver {
             driver.saveWithBlockWaitSave(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure)
         }
