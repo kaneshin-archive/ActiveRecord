@@ -122,6 +122,15 @@ public extension NSManagedObject {
         return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.context())
     }
     
+    public class func createAsTemporary(#entityName: String) -> NSManagedObject? {
+        if let context = NSManagedObjectContext.context() {
+            if let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) {
+                return self(entity: entityDescription, insertIntoManagedObjectContext: nil)
+            }
+        }
+        return nil
+    }
+    
     public func save() {
         var error: NSError? = nil
         ActiveRecord.driver?.save(self.managedObjectContext, error: &error)
@@ -179,6 +188,10 @@ public extension NSManagedObjectContext {
 
     public class func context() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.context()
+    }
+    
+    public class func mainContext() -> NSManagedObjectContext? {
+        return ActiveRecord.driver?.mainContext()
     }
 }
 

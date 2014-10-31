@@ -354,6 +354,16 @@ class Driver: NSObject {
 //        assert(false, "Managed object context not found. Managed object contexts should be created in an DriverOperationQueue.")
 //        return nil
     }
+    
+    /**
+    
+    Returns the default Managed Object Context for use in Main Thread.
+    
+    :returns: The default Managed Object Context
+    */
+    func mainContext() -> NSManagedObjectContext? {
+        return self.coreDataStack.defaultManagedObjectContext
+    }
 }
     
 
