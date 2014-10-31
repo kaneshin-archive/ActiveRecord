@@ -47,7 +47,7 @@ public class ActiveRecord: NSObject {
     }
     
     /**
-    Peform block in background queue and save : Manually call timing of save.
+    Peform block in background queue and save
     
     :param: block
     :param: saveSuccess
@@ -254,14 +254,19 @@ public extension NSManagedObjectContext {
     }
 
     /**
-    Returns the manage
+    Returns the managed object context which should be used (context associated to current Operation Queue or current Thread).
     
-    :returns: <#return value description#>
+    :returns: the managed object context which should be used
     */
     public class func context() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.context()
     }
     
+    /**
+    Returns the default managed object context (to be used in Main Queue)
+    
+    :returns: the default managed object context
+    */
     public class func mainContext() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.mainContext()
     }

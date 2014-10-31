@@ -28,8 +28,9 @@
 import Foundation
 import CoreData
 
+
 class Driver: NSObject {
-    
+
     var coreDataStack : CoreDataStack
     
     let kMaxConcurrentOperationCount = 1
@@ -243,6 +244,14 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Peform block in background queue and save
+    
+    :param: block
+    :param: saveSuccess
+    :param: saveFailure
+    :param: waitUntilFinished
+    */
     func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         self.saveWithBlockWaitSave(block: { (save) -> Void in
             block?()
@@ -250,6 +259,14 @@ class Driver: NSObject {
         }, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: waitUntilFinished)
     }
     
+    /**
+    Perform block in background queue and save and wait till done.
+    
+    :param: block
+    :param: error error pointer
+    
+    :returns: true if success
+    */
     func saveWithBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
         var result: Bool = true
         var _error = error
@@ -261,6 +278,14 @@ class Driver: NSObject {
         return result
     }
     
+    /**
+    Perform in background queue and save (Manually call timing of save.)
+    
+    :param: block             Block to perform. Call save() to invoke save.
+    :param: saveSuccess
+    :param: saveFailure
+    :param: waitUntilFinished
+    */
     func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
@@ -299,6 +324,12 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Peform block in background queue and save
+    
+    :param: block
+    :param: waitUntilFinished
+    */
     func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
@@ -380,10 +411,21 @@ extension Driver: Printable {
     }
 }
 
+/**
+*  Operation Queue to use when performing blocks in background
+*/
 class DriverOperationQueue: NSOperationQueue {
     
+    /// Managed Object Context associated to this Operation Queue
     var context: NSManagedObjectContext
     
+    /**
+    Initialize with parent Managed Object Context. It will be the parent of the context which will be associated to this Operation Queue.
+    
+    :param: parentContext The parent of the context which will be associated to this Operation Queue.
+    
+    :returns:
+    */
     init(parentContext: NSManagedObjectContext?) {
         let context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
         context.parentContext = parentContext
@@ -392,6 +434,11 @@ class DriverOperationQueue: NSOperationQueue {
         super.init()
     }
     
+    /**
+    Add an Operaion to this Operaion Queue. Operations will run in serial.
+    
+    :param: op Operation
+    */
     override func addOperation(op: NSOperation) {
         println("Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {
@@ -401,6 +448,9 @@ class DriverOperationQueue: NSOperationQueue {
     }
 }
 
+/**
+*  Operation to use with DriverOperationQueue
+*/
 class DriverOperation: NSBlockOperation {
     
 }
