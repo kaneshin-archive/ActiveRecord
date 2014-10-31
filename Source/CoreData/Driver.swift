@@ -71,7 +71,7 @@ class Driver: NSObject {
     
     :returns: array of managed objects. nil if an error occurred.
     */
-    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [NSManagedObject]? {
         if let context = context {
             var results: [AnyObject]? = nil
             var request = NSFetchRequest(entityName: entityName)
@@ -91,7 +91,7 @@ class Driver: NSObject {
                     request.fetchLimit = limit
                 }
             }
-            return context.executeFetchRequest(request, error: error)
+            return context.executeFetchRequest(request, error: error) as [NSManagedObject]?
         } else {
             return nil
         }
@@ -106,12 +106,12 @@ class Driver: NSObject {
     
     :returns: array of managed objects. nil if an error occurred.
     */
-    func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [AnyObject]? {
+    func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [NSManagedObject]? {
         let ctx = context != nil ? context : self.context()
         var results: [AnyObject]? = nil
 
         if let ctx = ctx {
-            return ctx.executeFetchRequest(fetchRequest, error: error)
+            return ctx.executeFetchRequest(fetchRequest, error: error) as [NSManagedObject]?
         }
         return nil
     }
@@ -236,7 +236,7 @@ class Driver: NSObject {
     :param: error
     */
     func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext, error: NSErrorPointer) {
-        if let objects = read(entityName, predicate: predicate, context: context, error: error) as? [NSManagedObject] {
+        if let objects = read(entityName, predicate: predicate, context: context, error: error) {
             for object: NSManagedObject in objects {
                 delete(object: object)
             }
