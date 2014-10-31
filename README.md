@@ -9,9 +9,8 @@ The library is inspired by the active record pattern which is a kind of design p
 
 ## Requirements
 
-- Xcode 6.0.1+
-- iOS7+
-
+- Xcode 6.1+
+- iOS7+ Mac OS X 10.10
 
 ## Installation
 
@@ -31,9 +30,9 @@ The library is inspired by the active record pattern which is a kind of design p
 ## Author
 
 - [Shintaro Kaneko](https://github.com/kaneshin) <kaneshin0120@gmail.com>
+- [Muukii](http://www.muukii.me) <muukii.muukii@gmail.com>
 
 
 ## License
 
 The MIT License
-

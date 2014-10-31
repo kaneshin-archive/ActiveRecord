@@ -31,6 +31,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         self.navigationItem.leftBarButtonItem = self.editButtonItem()
         let addButton = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: "insertNewObject:")
         self.navigationItem.rightBarButtonItem = addButton
+        self.tableView.estimatedRowHeight = 44
     }
     
     override func viewWillDisappear(animated: Bool) {
@@ -39,12 +40,35 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     }
 
     func insertNewObject(sender: AnyObject) {
-        let context = self.fetchedResultsController.managedObjectContext
-        let entity = self.fetchedResultsController.fetchRequest.entity
-        var newEvent = context.create(entity!.name!) as Event
+        let operation :NSOperationQueue = NSOperationQueue()
+        operation.addOperationWithBlock { () -> Void in
+        }
         
-        newEvent.timeStamp = NSDate()
-        newEvent.save()
+        var event: Event?
+        ActiveRecord.saveWithBackgroundBlockWaitSave({ (doSave) -> Void in
+// uncomment to run in another background thread
+//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
+
+                for i in 0...5 {
+                    let entity = self.fetchedResultsController.fetchRequest.entity
+                    var newEvent = Event.create(entityName: entity!.name!) as? Event
+                    
+                    newEvent!.timeStamp = NSDate()
+                    event = newEvent
+                }
+                doSave()
+//            })
+        }, saveSuccess: { () -> Void in
+            if let event = event {
+                var id = event.objectID
+                println(id)
+                var error: NSError?
+                if let object = NSManagedObjectContext.context()?.existingObjectWithID(id, error: &error) {
+                    println(object.description)
+                }
+            }
+        }, saveFailure: { (error) -> Void in
+        })
     }
 
     // MARK: - Segues
@@ -90,7 +114,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
-        cell.textLabel?.text = event.timeStamp.description
+        cell.textLabel.text = event.timeStamp.description
     }
 
     // MARK: - Fetched results controller
@@ -100,7 +124,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             return _fetchedResultsController!
         }
             
-        let moc = ActiveRecord.context()
+        let moc = NSManagedObjectContext.context()
 
         let fetchRequest = NSFetchRequest()
         // Edit the entity name as appropriate.
@@ -118,7 +142,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         
         // Edit the section name key path and cache name if appropriate.
         // nil for section name key path means "no sections".
-        let aFetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc!, sectionNameKeyPath: nil, cacheName: "Master")
+        let aFetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: moc!, sectionNameKeyPath: nil, cacheName: nil)
         aFetchedResultsController.delegate = self
         _fetchedResultsController = aFetchedResultsController
         

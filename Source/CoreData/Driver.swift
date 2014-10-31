@@ -20,129 +20,373 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/**
+*  http://www.cocoanetics.com/2012/07/multi-context-coredata/
+*/
+
+
 import Foundation
 import CoreData
 
 class Driver: NSObject {
     
-    class var sharedInstance: Driver {
-        struct Singleton {
-            static let instance = Driver()
-        }
-        return Singleton.instance
+    var coreDataStack : CoreDataStack
+    
+    let kMaxConcurrentOperationCount = 1
+    var driverOperationQueue: DriverOperationQueue
+    
+    init(coreDataStack: CoreDataStack) {
+        self.coreDataStack = coreDataStack
+        self.driverOperationQueue = DriverOperationQueue(parentContext: coreDataStack.defaultManagedObjectContext)
+        self.driverOperationQueue.maxConcurrentOperationCount = kMaxConcurrentOperationCount
     }
     
-    lazy var defaultManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
-        managedObjectContext.persistentStoreCoordinator = coordinator
-        return managedObjectContext
-    }()
     
-    class func context() -> NSManagedObjectContext {
-        return Driver.sharedInstance.defaultManagedObjectContext!
-    }
-    
-    // MARK: -
-    
-    private var automaticallyDeleteStoreOnMismatch: Bool = true
-    
-    lazy var defaultStoreName: String = {
-        var defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
-        if defaultName == nil {
-            defaultName = "DefaultStore.sqlite"
-        }
-        if !(defaultName!.hasSuffix("sqlite")) {
-            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
-        }
-        return defaultName!
-    }()
-
-    lazy var applicationDocumentsDirectory: NSURL = {
-        let fileManager = NSFileManager.defaultManager()
-        let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls.last as NSURL
-    }()
-    
-    lazy var storeURL: NSURL = {
-        return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
-    }()
-    
-    lazy var managedObjectModel: NSManagedObjectModel = {
-        return NSManagedObjectModel.mergedModelFromBundles(nil)!
-    }()
-    
-    lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator? = {
-        var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
-        let url = self.storeURL
-        var error: NSError? = nil
-        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-            if self.automaticallyDeleteStoreOnMismatch {
-                NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
-                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
-                    coordinator = nil
-                }
-            } else {
-                coordinator = nil
-            }
-        }
-        return coordinator
-    }()
     
     // MARK: - CRUD
     
-    func create(entityName: String, context: NSManagedObjectContext) -> AnyObject? {
-        return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as AnyObject?
-    }
+    /**
+    Create Entity
     
-    func read(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) -> [AnyObject]? {
-        var results: [AnyObject]? = nil
-        var error: NSError? = nil
-        var request = NSFetchRequest(entityName: entityName)
-        if predicate != nil {
-            request.predicate = predicate
-        }
-        results = context.executeFetchRequest(request, error: &error)
-        if results == nil {
-        }
-        return results
-    }
+    :param: entityName
+    :param: context
     
-    func save(context: NSManagedObjectContext) {
-        if context.hasChanges {
-            context.performBlock({ () -> Void in
-                var error: NSError? = nil
-                if !context.save(&error) {
-                }
-            })
+    :returns:
+    */
+    func create(entityName: String, context: NSManagedObjectContext?) -> NSManagedObject? {
+        if let context = context {
+            return NSEntityDescription.insertNewObjectForEntityForName(entityName, inManagedObjectContext: context) as? NSManagedObject
+        } else {
+            return nil
         }
     }
 
-    func delete(object: NSManagedObject) {
-        if let moc = object.managedObjectContext {
-            moc.deleteObject(object)
+    /**
+    Read Entity
+    
+    :param: entityName
+    :param: predicate
+    :param: sortDescriptor
+    :param: context
+    
+    :returns: array of managed objects. nil if an error occurred.
+    */
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
+        if let context = context {
+            var results: [AnyObject]? = nil
+            var request = NSFetchRequest(entityName: entityName)
+            if predicate != nil {
+                request.predicate = predicate
+            }
+            if sortDescriptors != nil {
+                request.sortDescriptors = sortDescriptors
+            }
+            if offset > 0 {
+                request.fetchOffset = offset
+            }
+            if limit > 0 {
+                request.fetchLimit = limit
+            }
+            return context.executeFetchRequest(request, error: error)
+        } else {
+            return nil
         }
     }
     
-    func delete(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext) {
-        if let objects = read(entityName, predicate: predicate, context: context) as? [NSManagedObject] {
-            for object: NSManagedObject in objects {
-                delete(object)
+    /**
+    Read Entity with fetchRequest
+    
+    :param: fetchRequest
+    :param: context
+    :param: error
+    
+    :returns: array of managed objects. nil if an error occurred.
+    */
+    func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [AnyObject]? {
+        let ctx = context != nil ? context : self.context()
+        var results: [AnyObject]? = nil
+
+        if let ctx = ctx {
+            return ctx.executeFetchRequest(fetchRequest, error: error)
+        }
+        return nil
+    }
+    
+    /**
+    Count Entities
+    
+    :param: entityName
+    :param: predicate
+    :param: context
+    
+    :returns:
+    */
+    func count(entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext?, error: NSErrorPointer) -> Int {
+        if let context = context {
+            var request = NSFetchRequest(entityName: entityName)
+            if predicate != nil {
+                request.predicate = predicate
+            }
+            return context.countForFetchRequest(request, error: error)
+        } else {
+            return 0
+        }
+    }
+    
+    /**
+    Save for PSC
+    
+    :param: context
+    */
+    
+    /**
+    Recursively save parent contexts
+    
+    :param: context Context to retrieve parents from.
+    :param: error
+    */
+    private func recursiveSave(context: NSManagedObjectContext?, error: NSErrorPointer) {
+        if let parentContext = context?.parentContext {
+            if (parentContext == self.coreDataStack.writerManagedObjectContext) {
+                parentContext.performBlock({ () -> Void in
+                    if parentContext.save(error) {
+                        if parentContext == self.coreDataStack.writerManagedObjectContext {
+                            println("Data stored")
+                        }
+                        self.recursiveSave(parentContext, error: error)
+                    }
+                })
+            } else {
+                parentContext.performBlockAndWait({ () -> Void in
+                    if parentContext.save(error) {
+                        if parentContext == self.coreDataStack.defaultManagedObjectContext {
+                            println("Merge to MainQueueContext")
+                        } else {
+                            println("Recursive save \(parentContext)")
+                        }
+                        
+                        self.recursiveSave(parentContext, error: error)
+                    }
+                })
             }
         }
     }
+    
+    /**
+    Save context and recursively save all parent contexts
+    
+    :param: context
+    :param: error
+    
+    :returns: true if success
+    */
+    func save(context: NSManagedObjectContext?, error: NSErrorPointer) -> Bool {
+        if error == nil {
+            var err: NSError? = nil
+            return self.save(context, error: &err)
+        }
+                
+        if let context = context {
+            if context.hasChanges {
+                context.performBlockAndWait({ () -> Void in
+                    if context.save(error) {
+                        self.recursiveSave(context, error: error)
+                    }
+                })
+                if error.memory != nil {
+                    println("Save failed : \(error.memory?.localizedDescription)")
+                    return false
+                } else {
+                    println("Save Success")
+                    return true
+                }
+            } else {
+                println("Save Success (No changes)")
+                return true
+            }
+        } else {
+            println("Save failed : context is nil")
+            return false
+        }
+    }
 
+    /**
+    Delete a managed object
+    
+    :param: object managed object
+    */
+    func delete(#object: NSManagedObject?) {
+        if let object = object {
+            if let context = object.managedObjectContext {
+                context.deleteObject(object)
+            }
+        }
+    }
+    
+    /**
+    Delete all managed objects using predicate
+    
+    :param: entityName
+    :param: predicate
+    :param: context
+    :param: error
+    */
+    func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext, error: NSErrorPointer) {
+        if let objects = read(entityName, predicate: predicate, context: context, error: error) as? [NSManagedObject] {
+            for object: NSManagedObject in objects {
+                delete(object: object)
+            }
+        }
+    }
+    
+    func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+        self.saveWithBlockWaitSave(block: { (doSave) -> Void in
+            block?()
+            doSave()
+        }, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: waitUntilFinished)
+    }
+    
+    func saveWithBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
+        var result: Bool = true
+        var _error = error
+        self.saveWithBlock(block: block, saveSuccess: { () -> Void in
+        }, saveFailure: { (error) -> Void in
+            result = false
+            _error.memory = error
+        }, waitUntilFinished: true)
+        return result
+    }
+    
+    func saveWithBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+        if let block = block {
+            let operation = DriverOperation { () -> Void in
+                var localContext = self.driverOperationQueue.context
+                block(doSave: { () -> Void in
+                    var error: NSError? = nil
+                    if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
+                        if error != nil {
+                            dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                saveFailure?(error: error)
+                                return
+                            })
+                        } else {
+                            if self.save(localContext, error: &error) {
+                                dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                                    saveSuccess?()
+                                    return
+                                })
+                            }
+                        }
+                    } else {
+                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                            saveFailure?(error: error)
+                            return
+                        })
+                    }
+                })
+                return
+            }
+            
+            if waitUntilFinished {
+                self.driverOperationQueue.addOperations([operation], waitUntilFinished: true)
+            } else {
+                self.driverOperationQueue.addOperation(operation)
+            }
+        }
+    }
+    
+    func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool = false) {
+        if let block = block {
+            let operation = DriverOperation { () -> Void in
+                block()
+                if let completion = completion {
+                    dispatch_sync(dispatch_get_main_queue(), { () -> Void in
+                        completion()
+                    })
+                }
+                return
+            }
+            
+            if waitUntilFinished {
+                self.driverOperationQueue.addOperations([operation], waitUntilFinished: true)
+            } else {
+                self.driverOperationQueue.addOperation(operation)
+            }
+        }
+    }
+    
+    /**
+    
+    Returns a NSManagedObjectContext associated to currennt operation queue.
+    Operation queues should be a Main Queue or a DriverOperationQueue
+    
+    :returns: A managed object context associated to current operation queue.
+    */
+    func context() -> NSManagedObjectContext? {
+        if let queue = NSOperationQueue.currentQueue() {
+            if queue == NSOperationQueue.mainQueue() {
+                return self.coreDataStack.defaultManagedObjectContext
+            } else if queue.isKindOfClass(DriverOperationQueue) {
+                return self.driverOperationQueue.context
+            }
+        }
+        
+        // temporarily use "context for current thread"
+        // context associated to thread
+        if NSThread.isMainThread() {
+            return self.coreDataStack.defaultManagedObjectContext
+        } else {
+            let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
+            let threadDictionary = NSThread.currentThread().threadDictionary
+            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+                return context
+            } else {
+                let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+                context.parentContext = self.coreDataStack.defaultManagedObjectContext
+                context.mergePolicy = NSOverwriteMergePolicy
+                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+                return context
+            }
+        }
+        
+
+// temporarily comment out assert
+//        assert(false, "Managed object context not found. Managed object contexts should be created in an DriverOperationQueue.")
+//        return nil
+    }
 }
+    
 
 // MARK: - Printable
 
 extension Driver: Printable {
     override var description: String {
-        let description = "Stored URL: \(self.storeURL)"
+        let description = "Stored URL: \(self.coreDataStack.storeURL)"
         return description
     }
 }
 
+class DriverOperationQueue: NSOperationQueue {
+    
+    var context: NSManagedObjectContext
+    
+    init(parentContext: NSManagedObjectContext?) {
+        let context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
+        context.parentContext = parentContext
+        context.mergePolicy = NSOverwriteMergePolicy
+        self.context = context
+        super.init()
+    }
+    
+    override func addOperation(op: NSOperation) {
+        println("Add Operation")
+        if let lastOperation = self.operations.last as? NSOperation {
+            op.addDependency(lastOperation)
+        }
+        super.addOperation(op)
+    }
+}
+
+class DriverOperation: NSBlockOperation {
+    
+}
