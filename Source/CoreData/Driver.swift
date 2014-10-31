@@ -71,7 +71,7 @@ class Driver: NSObject {
     
     :returns: array of managed objects. nil if an error occurred.
     */
-    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
         if let context = context {
             var results: [AnyObject]? = nil
             var request = NSFetchRequest(entityName: entityName)
@@ -81,11 +81,15 @@ class Driver: NSObject {
             if sortDescriptors != nil {
                 request.sortDescriptors = sortDescriptors
             }
-            if offset > 0 {
-                request.fetchOffset = offset
+            if let offset = offset {
+                if offset > 0 {
+                    request.fetchOffset = offset
+                }
             }
-            if limit > 0 {
-                request.fetchLimit = limit
+            if let limit = limit {
+                if limit > 0 {
+                    request.fetchLimit = limit
+                }
             }
             return context.executeFetchRequest(request, error: error)
         } else {

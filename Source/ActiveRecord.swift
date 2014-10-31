@@ -140,7 +140,7 @@ public extension NSManagedObject {
         ActiveRecord.driver?.delete(object: self)
     }
     
-    public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0) -> [AnyObject]? {
+    public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0) -> [AnyObject]? {
         var error: NSError? = nil
         return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.context(), error: &error)
     }
@@ -153,7 +153,7 @@ public extension NSManagedObject {
         return nil
     }
     
-    public class func find(#entityName: String, fetchRequest: NSFetchRequest) -> [AnyObject]? {
+    public class func find(#fetchRequest: NSFetchRequest) -> [AnyObject]? {
         var error: NSError? = nil
         return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.context(), error: &error)
     }
