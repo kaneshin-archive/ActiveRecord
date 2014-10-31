@@ -116,10 +116,24 @@ public class ActiveRecord: NSObject {
 
 public extension NSManagedObject {
     
+    /**
+    Create a managed object
+    
+    :param: entityName entityName of object to create.
+    
+    :returns: Entity Description
+    */
     public class func create(#entityName: String) -> NSManagedObject? {
         return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.context())
     }
     
+    /**
+    Create a temporary managed object which does not live inside a managed object context.
+    
+    :param: entityName entityName of object to create.
+    
+    :returns: Entity Description
+    */
     public class func createAsTemporary(#entityName: String) -> NSManagedObject? {
         if let context = NSManagedObjectContext.context() {
             if let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) {
@@ -129,20 +143,46 @@ public extension NSManagedObject {
         return nil
     }
     
+    /**
+    Save the managed object context which this managed object lives in.
+    */
     public func save() {
         var error: NSError? = nil
         ActiveRecord.driver?.save(self.managedObjectContext, error: &error)
     }
     
+    /**
+    Delete this object
+    */
     public func delete() {
         ActiveRecord.driver?.delete(object: self)
     }
     
+    /**
+    Find managed objects
+    
+    :param: entityName
+    :param: predicate
+    :param: sortDescriptors
+    :param: offset
+    :param: limit
+    
+    :returns: array of managed objects
+    */
     public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0) -> [NSManagedObject]? {
         var error: NSError? = nil
         return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.context(), error: &error)
     }
     
+    /**
+    Find first managed object
+    
+    :param: entityName
+    :param: predicate
+    :param: sortDescriptors
+    
+    :returns: array of managed objects
+    */
     public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> NSManagedObject? {
         var error: NSError? = nil
         if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: 0, limit: 1, context: ActiveRecord.driver?.context(), error: &error) {
@@ -151,11 +191,26 @@ public extension NSManagedObject {
         return nil
     }
     
+    /**
+    Find managed objects with fetchRequest
+    
+    :param: fetchRequest
+    
+    :returns: array of managed objects
+    */
     public class func find(#fetchRequest: NSFetchRequest) -> [NSManagedObject]? {
         var error: NSError? = nil
         return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.context(), error: &error)
     }
     
+    /**
+    Count managed objects
+    
+    :param: entityName
+    :param: predicate
+    
+    :returns: number of managed objects
+    */
     public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
         if let driver = ActiveRecord.driver {
             var error: NSError? = nil
@@ -167,16 +222,30 @@ public extension NSManagedObject {
 }
 
 public extension NSManagedObjectContext {
+    
+    /**
+    Save the managed object context
+    */
     public func save() {
         var error: NSError? = nil
         ActiveRecord.driver?.save(self, error: &error)
     }
     
+    /**
+    Save the managed object context
+    */
     public class func save() {
         var error: NSError? = nil
         ActiveRecord.driver?.save(ActiveRecord.driver?.context(), error: &error)
     }
 
+    /**
+    Save the managed object context with error pointer paramter
+    
+    :param: error error pointer parameter
+    
+    :returns: true for success
+    */
     public class func save(error: NSErrorPointer) -> Bool {
         if let driver =  ActiveRecord.driver {
             return driver.save(ActiveRecord.driver?.context(), error: error)
@@ -184,6 +253,11 @@ public extension NSManagedObjectContext {
         return false
     }
 
+    /**
+    Returns the manage
+    
+    :returns: <#return value description#>
+    */
     public class func context() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.context()
     }
