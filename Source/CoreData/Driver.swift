@@ -28,8 +28,9 @@
 import Foundation
 import CoreData
 
+
 class Driver: NSObject {
-    
+
     var coreDataStack : CoreDataStack
     
     let kMaxConcurrentOperationCount = 1
@@ -71,7 +72,7 @@ class Driver: NSObject {
     
     :returns: array of managed objects. nil if an error occurred.
     */
-    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int = 0, limit: Int = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [AnyObject]? {
+    func read(entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0, context: NSManagedObjectContext?, error: NSErrorPointer) -> [NSManagedObject]? {
         if let context = context {
             var results: [AnyObject]? = nil
             var request = NSFetchRequest(entityName: entityName)
@@ -81,13 +82,17 @@ class Driver: NSObject {
             if sortDescriptors != nil {
                 request.sortDescriptors = sortDescriptors
             }
-            if offset > 0 {
-                request.fetchOffset = offset
+            if let offset = offset {
+                if offset > 0 {
+                    request.fetchOffset = offset
+                }
             }
-            if limit > 0 {
-                request.fetchLimit = limit
+            if let limit = limit {
+                if limit > 0 {
+                    request.fetchLimit = limit
+                }
             }
-            return context.executeFetchRequest(request, error: error)
+            return context.executeFetchRequest(request, error: error) as [NSManagedObject]?
         } else {
             return nil
         }
@@ -102,12 +107,12 @@ class Driver: NSObject {
     
     :returns: array of managed objects. nil if an error occurred.
     */
-    func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [AnyObject]? {
+    func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [NSManagedObject]? {
         let ctx = context != nil ? context : self.context()
         var results: [AnyObject]? = nil
 
         if let ctx = ctx {
-            return ctx.executeFetchRequest(fetchRequest, error: error)
+            return ctx.executeFetchRequest(fetchRequest, error: error) as [NSManagedObject]?
         }
         return nil
     }
@@ -232,20 +237,36 @@ class Driver: NSObject {
     :param: error
     */
     func delete(#entityName: String, predicate: NSPredicate? = nil, context: NSManagedObjectContext, error: NSErrorPointer) {
-        if let objects = read(entityName, predicate: predicate, context: context, error: error) as? [NSManagedObject] {
+        if let objects = read(entityName, predicate: predicate, context: context, error: error) {
             for object: NSManagedObject in objects {
                 delete(object: object)
             }
         }
     }
     
+    /**
+    Peform block in background queue and save
+    
+    :param: block
+    :param: saveSuccess
+    :param: saveFailure
+    :param: waitUntilFinished
+    */
     func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
-        self.saveWithBlockWaitSave(block: { (doSave) -> Void in
+        self.saveWithBlockWaitSave(block: { (save) -> Void in
             block?()
-            doSave()
+            save()
         }, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: waitUntilFinished)
     }
     
+    /**
+    Perform block in background queue and save and wait till done.
+    
+    :param: block
+    :param: error error pointer
+    
+    :returns: true if success
+    */
     func saveWithBlockAndWait(#block: (() -> Void)?, error: NSErrorPointer) -> Bool {
         var result: Bool = true
         var _error = error
@@ -257,11 +278,19 @@ class Driver: NSObject {
         return result
     }
     
-    func saveWithBlockWaitSave(#block: ((doSave: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    /**
+    Perform in background queue and save (Manually call timing of save.)
+    
+    :param: block             Block to perform. Call save() to invoke save.
+    :param: saveSuccess
+    :param: saveFailure
+    :param: waitUntilFinished
+    */
+    func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 var localContext = self.driverOperationQueue.context
-                block(doSave: { () -> Void in
+                block(save: { () -> Void in
                     var error: NSError? = nil
                     if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
                         if error != nil {
@@ -295,6 +324,12 @@ class Driver: NSObject {
         }
     }
     
+    /**
+    Peform block in background queue and save
+    
+    :param: block
+    :param: waitUntilFinished
+    */
     func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool = false) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
@@ -354,6 +389,16 @@ class Driver: NSObject {
 //        assert(false, "Managed object context not found. Managed object contexts should be created in an DriverOperationQueue.")
 //        return nil
     }
+    
+    /**
+    
+    Returns the default Managed Object Context for use in Main Thread.
+    
+    :returns: The default Managed Object Context
+    */
+    func mainContext() -> NSManagedObjectContext? {
+        return self.coreDataStack.defaultManagedObjectContext
+    }
 }
     
 
@@ -366,10 +411,21 @@ extension Driver: Printable {
     }
 }
 
+/**
+*  Operation Queue to use when performing blocks in background
+*/
 class DriverOperationQueue: NSOperationQueue {
     
+    /// Managed Object Context associated to this Operation Queue
     var context: NSManagedObjectContext
     
+    /**
+    Initialize with parent Managed Object Context. It will be the parent of the context which will be associated to this Operation Queue.
+    
+    :param: parentContext The parent of the context which will be associated to this Operation Queue.
+    
+    :returns:
+    */
     init(parentContext: NSManagedObjectContext?) {
         let context = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
         context.parentContext = parentContext
@@ -378,6 +434,11 @@ class DriverOperationQueue: NSOperationQueue {
         super.init()
     }
     
+    /**
+    Add an Operaion to this Operaion Queue. Operations will run in serial.
+    
+    :param: op Operation
+    */
     override func addOperation(op: NSOperation) {
         println("Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {
@@ -387,6 +448,9 @@ class DriverOperationQueue: NSOperationQueue {
     }
 }
 
+/**
+*  Operation to use with DriverOperationQueue
+*/
 class DriverOperation: NSBlockOperation {
     
 }
