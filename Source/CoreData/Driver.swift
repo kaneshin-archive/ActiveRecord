@@ -373,13 +373,13 @@ class Driver: NSObject {
         } else {
             let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
             let threadDictionary = NSThread.currentThread().threadDictionary
-            if let context = threadDictionary?[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
+            if let context = threadDictionary[kNSManagedObjectContextThreadKey] as? NSManagedObjectContext {
                 return context
             } else {
                 let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
                 context.parentContext = self.coreDataStack.defaultManagedObjectContext
                 context.mergePolicy = NSOverwriteMergePolicy
-                threadDictionary?.setObject(context, forKey: kNSManagedObjectContextThreadKey)
+                threadDictionary.setObject(context, forKey: kNSManagedObjectContextThreadKey)
                 return context
             }
         }
