@@ -23,27 +23,49 @@
 import Foundation
 import CoreData
 
+func arprint(  _ body: AnyObject! = "",
+    function: String = __FUNCTION__,
+    line: Int = __LINE__) {
+#if DEBUG
+    println("[\(function) : \(line)] \(body)")
+    #else
+#endif
+}
+
+
 public class ActiveRecord: NSObject {
     
-    /// private sharedInstance
-    private class var sharedInstance : ActiveRecord {
-        struct Static {
-            static let instance : ActiveRecord = ActiveRecord()
-        }
-        return Static.instance
+    struct Static {
+        static var driver: Driver?
     }
     
-    /// instance variable for static variable driver
-    private var sharedDriver: Driver?
-
+    
     private class var driver: Driver? {
-        return ActiveRecord.sharedInstance.sharedDriver
+        return Static.driver
     }
     
-    override init() {
-        if let coreDataStack = ActiveRecordConfig.sharedInstance.coreDataStack {
-            self.sharedDriver = Driver(coreDataStack: coreDataStack)
+    /// true if migration was not necessary on launch or have performed migration
+    public class var migrationNotRequiredConfirmed: Bool {
+        if let driver = Static.driver {
+            return driver.coreDataStack.migrationNotRequiredConfirmed
         }
+        return false
+    }
+    
+    public class func setup(#coreDataStack: CoreDataStack) {
+        Static.driver = Driver(coreDataStack: coreDataStack)
+    }
+    
+    public class func tearDown(tearDownCoreDataStack: (CoreDataStack) -> Void) {
+        Static.driver?.tearDown(tearDownCoreDataStack)
+        Static.driver = nil
+    }
+    
+    public class func persistentStoreCoordinator() -> NSPersistentStoreCoordinator? {
+        if let driver = self.driver {
+            return driver.coreDataStack.persistentStoreCoordinator
+        }
+        return nil
     }
     
     /**
@@ -110,7 +132,32 @@ public class ActiveRecord: NSObject {
             return driver.performBlock(block: block, completion: nil, waitUntilFinished: true)
         }
     }
-
+    
+    /**
+    Check if migration is needed. instantiateCoreDataStack() will be called internally if migration is not needed.
+    
+    :returns: true if migration is needed. false if not needed (includes case when persistent store is not found).
+    */
+    public class func isRequiredMigration() -> Bool {
+        if let driver = self.driver {
+            let required = driver.isRequiredMigration()
+            if !required {
+                self.instantiateCoreDataStack()
+            }
+            return required
+        }
+        return false
+    }
+    
+    
+    /**
+    Instantiates the Core Data Stack (defaultManagedObjectContext, writerManagedObjectContext, persistentStoreCoordinator, managedObjectModel). This will trigger migration when needed.
+    */
+    public class func instantiateCoreDataStack() {
+        if let driver = self.driver {
+            driver.coreDataStack.instantiateStack()
+        }
+    }
 }
 
 
@@ -157,6 +204,17 @@ public extension NSManagedObject {
     public func delete() {
         ActiveRecord.driver?.delete(object: self)
     }
+
+    /**
+    Delete all managed objects using predicate
+
+    :param: entityName
+    :param: predicate
+    */
+    public class func delete(#entityName: String, predicate: NSPredicate) {
+        var error: NSError? = nil
+        ActiveRecord.driver?.delete(entityName: entityName, predicate: predicate, context: ActiveRecord.driver?.context(), error: &error)
+    }
     
     /**
     Find managed objects
@@ -171,7 +229,7 @@ public extension NSManagedObject {
     */
     public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0) -> [NSManagedObject]? {
         var error: NSError? = nil
-        return ActiveRecord.driver?.read(entityName, predicate: predicate, offset: offset, limit: limit, context: ActiveRecord.driver?.context(), error: &error)
+        return ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit, context: ActiveRecord.driver?.context(), error: &error)
     }
     
     /**

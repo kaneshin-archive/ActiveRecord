@@ -114,7 +114,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let event = self.fetchedResultsController.objectAtIndexPath(indexPath) as Event
-        cell.textLabel.text = event.timeStamp.description
+        cell.textLabel?.text = event.timeStamp.description
     }
 
     // MARK: - Fetched results controller

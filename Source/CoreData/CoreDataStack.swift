@@ -15,47 +15,45 @@ public class CoreDataStack: NSObject {
         super.init()
     }
 
+    
+    /// true if migration was not necessary on launch or have performed migration
+    var migrationNotRequiredConfirmed: Bool = false
+    
     /// Main queue context
     public var defaultManagedObjectContext: NSManagedObjectContext? {
-        get {
-            assert(false, "must implement property defaultManagedObjectContext")
-            return nil
-        }
-        set {}
+        assert(false, "must implement property defaultManagedObjectContext")
+        return nil
     }
 
     /// Context for writing to the PersistentStore
     public var writerManagedObjectContext: NSManagedObjectContext? {
-        get {
-            assert(false, "must implement property writerManagedObjectContext")
-            return nil
-        }
-        set {}
+        assert(false, "must implement property writerManagedObjectContext")
+        return nil
     }
     
     /// PersistentStoreCoordinator
     public var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
-        get {
-            assert(false, "must implement property persistentStoreCoordinator")
-            return nil
-        }
+        assert(false, "must implement property persistentStoreCoordinator")
+        return nil
     }
     
     /// ManagedObjectModel
     public var managedObjectModel: NSManagedObjectModel? {
-        get {
-            assert(false, "must implement property managedObjectModel")
-            return nil
-        }
-        set {}
+        assert(false, "must implement property managedObjectModel")
+        return nil
     }
 
     /// Store URL
     public var storeURL: NSURL? {
-        get {
-            return nil
-        }
-        set {}
+        return nil
+    }
+
+    /**
+    Instantiates the stack (defaultManagedObjectContext, writerManagedObjectContext, persistentStoreCoordinator, managedObjectModel). Typically this will trigger migration when needed.
+    */
+    func instantiateStack() {
+        self.defaultManagedObjectContext
+        self.migrationNotRequiredConfirmed = true
     }
     
     /**
@@ -68,8 +66,8 @@ public class CoreDataStack: NSObject {
 
         if let storeURL = self.storeURL {
             // find the persistent store.
-            if storeURL.checkResourceIsReachableAndReturnError(&error) {
-                println("Persistent store not found : \(error?.localizedDescription)")
+            if storeURL.checkResourceIsReachableAndReturnError(&error) == false {
+                arprint("Persistent store not found : \(error?.localizedDescription)")
                 return false
             }
 
@@ -77,7 +75,10 @@ public class CoreDataStack: NSObject {
             let sourceMetaData = NSPersistentStoreCoordinator.metadataForPersistentStoreOfType(NSSQLiteStoreType, URL: storeURL, error: &error)
             if let managedObjectModel = self.managedObjectModel {
                 let isCompatible: Bool = managedObjectModel.isConfiguration(nil, compatibleWithStoreMetadata: sourceMetaData)
-                return isCompatible
+                if isCompatible {
+                    self.migrationNotRequiredConfirmed = true
+                }
+                return !isCompatible
             } else {
                 fatalError("Could not get managed object model")
             }

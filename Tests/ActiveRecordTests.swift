@@ -28,7 +28,7 @@ class ActiveRecordTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        ActiveRecordConfig.sharedInstance.coreDataStack = TestCoreDataStack()
+        ActiveRecord.setup(coreDataStack: TestCoreDataStack())
     }
     
     override func tearDown() {
