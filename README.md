@@ -44,5 +44,9 @@ The library is inspired by the active record pattern which is a kind of design p
 ## Author
 
 - [Shintaro Kaneko](https://github.com/kaneshin) <kaneshin0120@gmail.com>
+
+## Contributors
+
 - [Hiroshi Kimura](https://github.com/muukii0803) <muukii.muukii@gmail.com>
+- Kenji Tayama
 
