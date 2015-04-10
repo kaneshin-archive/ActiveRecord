@@ -11,6 +11,7 @@
 		790BAE1219BC141300B10B2D /* ActiveRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */; };
 		790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1919BC14E500B10B2D /* ActiveRecord.swift */; };
 		791070A419D1315D00649AD7 /* Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791070A319D1315D00649AD7 /* Driver.swift */; };
+		798277CC1AD8149900ABA2E8 /* Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798277CB1AD8149900ABA2E8 /* Debug.swift */; };
 		7C3DA7C919F8D38100594E34 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C3DA7C819F8D38100594E34 /* CoreDataStack.swift */; };
 		7C9BE9A919F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C9BE9A719F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld */; };
 		7C9BE9AF19F9EAFA0080941B /* TestCoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9BE9AE19F9EAFA0080941B /* TestCoreDataStack.swift */; };
@@ -36,9 +37,9 @@
 		790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRecordTests.swift; sourceTree = "<group>"; };
 		790BAE1919BC14E500B10B2D /* ActiveRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecord.swift; sourceTree = "<group>"; };
 		791070A319D1315D00649AD7 /* Driver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Driver.swift; sourceTree = "<group>"; };
+		798277CB1AD8149900ABA2E8 /* Debug.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Debug.swift; sourceTree = "<group>"; };
 		7C3DA7C819F8D38100594E34 /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		7C9BE9A819F9EA5A0080941B /* ActiveRecordTests.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ActiveRecordTests.xcdatamodel; sourceTree = "<group>"; };
-		7C9BE9AA19F9EABF0080941B /* ActiveRecordTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ActiveRecordTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		7C9BE9AE19F9EAFA0080941B /* TestCoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestCoreDataStack.swift; sourceTree = "<group>"; };
 		7C9BE9B019F9EF8A0080941B /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -85,6 +86,7 @@
 				790BAE0719BC141300B10B2D /* ActiveRecord.h */,
 				790BAE1919BC14E500B10B2D /* ActiveRecord.swift */,
 				7910709E19D1303B00649AD7 /* CoreData */,
+				798277CA1AD8145200ABA2E8 /* Utilities */,
 				790BAE0519BC141300B10B2D /* Supporting Files */,
 			);
 			path = Source;
@@ -105,7 +107,6 @@
 				7C9BE9AE19F9EAFA0080941B /* TestCoreDataStack.swift */,
 				7C9BE9B019F9EF8A0080941B /* Event.swift */,
 				7C9BE9A719F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld */,
-				7C9BE9AA19F9EABF0080941B /* ActiveRecordTests-Bridging-Header.h */,
 				790BAE0F19BC141300B10B2D /* Supporting Files */,
 			);
 			path = Tests;
@@ -126,6 +127,14 @@
 				791070A319D1315D00649AD7 /* Driver.swift */,
 			);
 			path = CoreData;
+			sourceTree = "<group>";
+		};
+		798277CA1AD8145200ABA2E8 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				798277CB1AD8149900ABA2E8 /* Debug.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -160,9 +169,9 @@
 			productReference = 790BAE0219BC141300B10B2D /* ActiveRecord.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		790BAE0C19BC141300B10B2D /* ActiveRecordTests */ = {
+		790BAE0C19BC141300B10B2D /* Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 790BAE1619BC141300B10B2D /* Build configuration list for PBXNativeTarget "ActiveRecordTests" */;
+			buildConfigurationList = 790BAE1619BC141300B10B2D /* Build configuration list for PBXNativeTarget "Tests" */;
 			buildPhases = (
 				790BAE0919BC141300B10B2D /* Sources */,
 				790BAE0A19BC141300B10B2D /* Frameworks */,
@@ -173,7 +182,7 @@
 			dependencies = (
 				790BAE3219BC17CD00B10B2D /* PBXTargetDependency */,
 			);
-			name = ActiveRecordTests;
+			name = Tests;
 			productName = ActiveRecordTests;
 			productReference = 790BAE0D19BC141300B10B2D /* ActiveRecordTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -185,7 +194,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0600;
-				ORGANIZATIONNAME = "";
+				ORGANIZATIONNAME = "Shintaro Kaneko";
 				TargetAttributes = {
 					790BAE0119BC141300B10B2D = {
 						CreatedOnToolsVersion = 6.0;
@@ -208,7 +217,7 @@
 			projectRoot = "";
 			targets = (
 				790BAE0119BC141300B10B2D /* ActiveRecord */,
-				790BAE0C19BC141300B10B2D /* ActiveRecordTests */,
+				790BAE0C19BC141300B10B2D /* Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -236,6 +245,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7C3DA7C919F8D38100594E34 /* CoreDataStack.swift in Sources */,
+				798277CC1AD8149900ABA2E8 /* Debug.swift in Sources */,
 				791070A419D1315D00649AD7 /* Driver.swift in Sources */,
 				790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */,
 			);
@@ -434,7 +444,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "Tests/ActiveRecordTests-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -478,7 +488,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "Tests/ActiveRecordTests-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -504,7 +514,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		790BAE1619BC141300B10B2D /* Build configuration list for PBXNativeTarget "ActiveRecordTests" */ = {
+		790BAE1619BC141300B10B2D /* Build configuration list for PBXNativeTarget "Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				790BAE1719BC141300B10B2D /* Debug */,

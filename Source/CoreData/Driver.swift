@@ -20,14 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/**
-*  http://www.cocoanetics.com/2012/07/multi-context-coredata/
-*/
-
-
 import Foundation
 import CoreData
-
 
 class Driver: NSObject {
     
@@ -170,11 +164,11 @@ class Driver: NSObject {
             parentContext.performBlock({ () -> Void in
                 if parentContext.save(error) {
                     if parentContext == self.coreDataStack.writerManagedObjectContext {
-                        arprint("Data stored")
+                        Debug.print("Data stored")
                     } else if parentContext == self.coreDataStack.defaultManagedObjectContext {
-                        arprint("MainQueueContext saved")
+                        Debug.print("MainQueueContext saved")
                     } else {
-                        arprint("Recursive save \(parentContext)")
+                        Debug.print("Recursive save \(parentContext)")
                     }
                     
                     self.recursiveSave(parentContext, error: error)
@@ -205,18 +199,18 @@ class Driver: NSObject {
                     }
                 })
                 if error.memory != nil {
-                    arprint("Save failed : \(error.memory?.localizedDescription)")
+                    Debug.print("Save failed : \(error.memory?.localizedDescription)")
                     return false
                 } else {
-                    arprint("Save Success")
+                    Debug.print("Save Success")
                     return true
                 }
             } else {
-                arprint("Save Success (No changes)")
+                Debug.print("Save Success (No changes)")
                 return true
             }
         } else {
-            arprint("Save failed : context is nil")
+            Debug.print("Save failed : context is nil")
             return false
         }
     }
@@ -488,7 +482,7 @@ class DriverOperationQueue: NSOperationQueue {
     :param: op Operation
     */
     override func addOperation(op: NSOperation) {
-        arprint("Add Operation")
+        Debug.print("Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {
             op.addDependency(lastOperation)
         }
