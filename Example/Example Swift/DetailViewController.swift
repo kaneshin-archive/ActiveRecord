@@ -1,4 +1,4 @@
-// ActiveRecord.swift
+// DetailViewController.swift
 //
 // Copyright (c) 2014 Shintaro Kaneko
 //
@@ -20,7 +20,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import <Foundation/Foundation.h>
+import UIKit
 
-FOUNDATION_EXPORT double ActiveRecordVersionNumber;
-FOUNDATION_EXPORT const unsigned char ActiveRecordVersionString[];
+class DetailViewController: UIViewController {
+
+    @IBOutlet weak var detailDescriptionLabel: UILabel!
+
+    var detailEvent: Event? {
+        didSet {
+            self.configureView()
+        }
+    }
+
+    func configureView() {
+        if let event: Event = self.detailEvent {
+            if let label = self.detailDescriptionLabel {
+                label.text = event.timeStamp.description
+            }
+        }
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.configureView()
+    }
+
+}
+

@@ -1,6 +1,7 @@
 // ActiveRecordTests.swift
 //
-// Copyright (c) 2015 Shintaro Kaneko
+// Copyright (c) 2014 Kenji Tayame
+// Copyright (c) 2014 Shintaro Kaneko
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal

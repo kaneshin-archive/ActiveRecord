@@ -1,4 +1,4 @@
-// ActiveRecord.swift
+// AppDelegate.swift
 //
 // Copyright (c) 2014 Shintaro Kaneko
 //
@@ -20,7 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import <Foundation/Foundation.h>
+import UIKit
+import ActiveRecord
 
-FOUNDATION_EXPORT double ActiveRecordVersionNumber;
-FOUNDATION_EXPORT const unsigned char ActiveRecordVersionString[];
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    var window: UIWindow?
+
+
+    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+        ActiveRecord.setup(coreDataStack: AppCoreDataStack())
+        return true
+    }
+
+}
+

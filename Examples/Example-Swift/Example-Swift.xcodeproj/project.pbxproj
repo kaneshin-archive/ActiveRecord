@@ -6,20 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		79CF6D5119DD8B6D00D2C9BC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CF6D5019DD8B6D00D2C9BC /* AppDelegate.swift */; };
-		79CF6D5419DD8B6D00D2C9BC /* Example_Swift.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 79CF6D5219DD8B6D00D2C9BC /* Example_Swift.xcdatamodeld */; };
-		79CF6D5619DD8B6D00D2C9BC /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CF6D5519DD8B6D00D2C9BC /* MasterViewController.swift */; };
-		79CF6D5819DD8B6D00D2C9BC /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CF6D5719DD8B6D00D2C9BC /* DetailViewController.swift */; };
-		79CF6D5B19DD8B6D00D2C9BC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 79CF6D5919DD8B6D00D2C9BC /* Main.storyboard */; };
-		79CF6D5D19DD8B6D00D2C9BC /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 79CF6D5C19DD8B6D00D2C9BC /* Images.xcassets */; };
-		79CF6D6019DD8B6D00D2C9BC /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 79CF6D5E19DD8B6D00D2C9BC /* LaunchScreen.xib */; };
-		79CF6D7F19DD8C0200D2C9BC /* ActiveRecord.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 79CF6D7C19DD8BF000D2C9BC /* ActiveRecord.framework */; };
-		79CF6D8019DD8C0200D2C9BC /* ActiveRecord.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 79CF6D7C19DD8BF000D2C9BC /* ActiveRecord.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		79CF6D8519DD8C7D00D2C9BC /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79CF6D8419DD8C7D00D2C9BC /* Event.swift */; };
-		7C31475619F8F9F2003B12F1 /* AppCoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C31475519F8F9F2003B12F1 /* AppCoreDataStack.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		79CF6D7B19DD8BF000D2C9BC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -35,31 +21,9 @@
 			remoteGlobalIDString = 790BAE0D19BC141300B10B2D;
 			remoteInfo = ActiveRecordTests;
 		};
-		79CF6D8119DD8C0200D2C9BC /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 79CF6D7619DD8BF000D2C9BC /* ActiveRecord.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 790BAE0119BC141300B10B2D;
-			remoteInfo = ActiveRecord;
-		};
 /* End PBXContainerItemProxy section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		79CF6D8319DD8C0200D2C9BC /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				79CF6D8019DD8C0200D2C9BC /* ActiveRecord.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		79CF6D4B19DD8B6D00D2C9BC /* Example-Swift.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Example-Swift.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		79CF6D4F19DD8B6D00D2C9BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		79CF6D5019DD8B6D00D2C9BC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		79CF6D5319DD8B6D00D2C9BC /* Example_Swift.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Example_Swift.xcdatamodel; sourceTree = "<group>"; };
@@ -72,17 +36,6 @@
 		79CF6D8419DD8C7D00D2C9BC /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		7C31475519F8F9F2003B12F1 /* AppCoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppCoreDataStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		79CF6D4819DD8B6D00D2C9BC /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				79CF6D7F19DD8C0200D2C9BC /* ActiveRecord.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		79CF6D4219DD8B6D00D2C9BC = {
@@ -97,7 +50,6 @@
 		79CF6D4C19DD8B6D00D2C9BC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				79CF6D4B19DD8B6D00D2C9BC /* Example-Swift.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -146,39 +98,12 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXNativeTarget section */
-		79CF6D4A19DD8B6D00D2C9BC /* Example-Swift */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 79CF6D6F19DD8B6D00D2C9BC /* Build configuration list for PBXNativeTarget "Example-Swift" */;
-			buildPhases = (
-				79CF6D4719DD8B6D00D2C9BC /* Sources */,
-				79CF6D4819DD8B6D00D2C9BC /* Frameworks */,
-				79CF6D4919DD8B6D00D2C9BC /* Resources */,
-				79CF6D8319DD8C0200D2C9BC /* Embed Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				79CF6D8219DD8C0200D2C9BC /* PBXTargetDependency */,
-			);
-			name = "Example-Swift";
-			productName = "Example-Swift";
-			productReference = 79CF6D4B19DD8B6D00D2C9BC /* Example-Swift.app */;
-			productType = "com.apple.product-type.application";
-		};
-/* End PBXNativeTarget section */
-
 /* Begin PBXProject section */
 		79CF6D4319DD8B6D00D2C9BC /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0600;
 				ORGANIZATIONNAME = "Shintaro Kaneko (http://kaneshinth.com)";
-				TargetAttributes = {
-					79CF6D4A19DD8B6D00D2C9BC = {
-						CreatedOnToolsVersion = 6.0.1;
-					};
-				};
 			};
 			buildConfigurationList = 79CF6D4619DD8B6D00D2C9BC /* Build configuration list for PBXProject "Example-Swift" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -199,7 +124,6 @@
 			);
 			projectRoot = "";
 			targets = (
-				79CF6D4A19DD8B6D00D2C9BC /* Example-Swift */,
 			);
 		};
 /* End PBXProject section */
@@ -220,43 +144,6 @@
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
-
-/* Begin PBXResourcesBuildPhase section */
-		79CF6D4919DD8B6D00D2C9BC /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				79CF6D5B19DD8B6D00D2C9BC /* Main.storyboard in Resources */,
-				79CF6D6019DD8B6D00D2C9BC /* LaunchScreen.xib in Resources */,
-				79CF6D5D19DD8B6D00D2C9BC /* Images.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		79CF6D4719DD8B6D00D2C9BC /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				79CF6D5419DD8B6D00D2C9BC /* Example_Swift.xcdatamodeld in Sources */,
-				79CF6D5119DD8B6D00D2C9BC /* AppDelegate.swift in Sources */,
-				79CF6D5619DD8B6D00D2C9BC /* MasterViewController.swift in Sources */,
-				7C31475619F8F9F2003B12F1 /* AppCoreDataStack.swift in Sources */,
-				79CF6D5819DD8B6D00D2C9BC /* DetailViewController.swift in Sources */,
-				79CF6D8519DD8C7D00D2C9BC /* Event.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		79CF6D8219DD8C0200D2C9BC /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = ActiveRecord;
-			targetProxy = 79CF6D8119DD8C0200D2C9BC /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		79CF6D5919DD8B6D00D2C9BC /* Main.storyboard */ = {
@@ -355,26 +242,6 @@
 			};
 			name = Release;
 		};
-		79CF6D7019DD8B6D00D2C9BC /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				INFOPLIST_FILE = "Example-Swift/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		79CF6D7119DD8B6D00D2C9BC /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				INFOPLIST_FILE = "Example-Swift/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -383,15 +250,6 @@
 			buildConfigurations = (
 				79CF6D6D19DD8B6D00D2C9BC /* Debug */,
 				79CF6D6E19DD8B6D00D2C9BC /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		79CF6D6F19DD8B6D00D2C9BC /* Build configuration list for PBXNativeTarget "Example-Swift" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				79CF6D7019DD8B6D00D2C9BC /* Debug */,
-				79CF6D7119DD8B6D00D2C9BC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -5,6 +5,6 @@
       location = "group:ActiveRecord.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Examples/Example-Swift/Example-Swift.xcodeproj">
+      location = "group:Example/Example.xcodeproj">
    </FileRef>
 </Workspace>

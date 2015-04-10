@@ -1,4 +1,4 @@
-// ActiveRecord.swift
+// Event.swift
 //
 // Copyright (c) 2014 Shintaro Kaneko
 //
@@ -20,7 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import <Foundation/Foundation.h>
+import Foundation
+import CoreData
 
-FOUNDATION_EXPORT double ActiveRecordVersionNumber;
-FOUNDATION_EXPORT const unsigned char ActiveRecordVersionString[];
+class Event: NSManagedObject {
+
+    @NSManaged var timeStamp: NSDate
+
+}

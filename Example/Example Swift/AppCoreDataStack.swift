@@ -1,7 +1,7 @@
-// TestCoreDataStack.swift
+// AppCoreDataStack.swift
 //
 // Copyright (c) 2014 Kenji Tayama
-// Copyright (c) 2014 Shintaro Kaneko
+// Copyright (c) 2015 Shintaro Kaneko
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ import Foundation
 import CoreData
 import ActiveRecord
 
-class TestCoreDataStack : CoreDataStack {
+class AppCoreDataStack : CoreDataStack {
     
     override init() {
         super.init()
@@ -71,14 +71,22 @@ class TestCoreDataStack : CoreDataStack {
         set { }
     }
     
-    
     lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
+
         if let managedObjectModel = self.managedObjectModel {
             var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
             var error: NSError? = nil
-
-            if coordinator?.addPersistentStoreWithType(NSInMemoryStoreType, configuration: nil, URL: nil, options: nil, error: &error) == true {
-                println("could not add persistent store : \(error?.localizedDescription)")
+            if let url = self.storeURL {
+                if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+                    if self.automaticallyDeleteStoreOnMismatch {
+                        NSFileManager.defaultManager().removeItemAtURL(url, error: nil)
+                        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+                            coordinator = nil
+                        }
+                    } else {
+                        coordinator = nil
+                    }
+                }
             }
             return coordinator
         }
@@ -94,13 +102,8 @@ class TestCoreDataStack : CoreDataStack {
     }
     
     
-    lazy var lazyManagedObjectModel: NSManagedObjectModel? = {
-        let testsBundle: NSBundle = NSBundle(forClass: self.dynamicType)
-        let modelURL: NSURL? = testsBundle.URLForResource("ActiveRecordTests", withExtension: "momd")
-        if let managedObjectModel = NSManagedObjectModel(contentsOfURL: modelURL!) {
-            return managedObjectModel
-        }
-        return nil
+    lazy var lazyManagedObjectModel: NSManagedObjectModel = {
+        return NSManagedObjectModel.mergedModelFromBundles(nil)!
     }()
     
     /// ManagedObjectModel
@@ -110,4 +113,41 @@ class TestCoreDataStack : CoreDataStack {
         }
         set { }
     }
+    
+    lazy var lazyStoreURL: NSURL = {
+        return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
+    }()
+
+    /// Store URL
+    override var storeURL: NSURL? {
+        get {
+            return self.lazyStoreURL
+        }
+        set { }
+    }
+
+    
+    private let automaticallyDeleteStoreOnMismatch: Bool = true
+    
+    /// default store name
+    lazy var defaultStoreName: String = {
+        var defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
+        if defaultName == nil {
+            defaultName = "DefaultStore.sqlite"
+        }
+        if !(defaultName!.hasSuffix("sqlite")) {
+            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
+        }
+        return defaultName!
+    }()
+
+    /// Application's document directory
+    lazy var applicationDocumentsDirectory: NSURL = {
+        let fileManager = NSFileManager.defaultManager()
+        let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
+        return urls.last as! NSURL
+    }()
+    
+    
+    
 }
