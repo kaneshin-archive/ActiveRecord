@@ -92,7 +92,7 @@ class Driver: NSObject {
                     request.fetchLimit = limit
                 }
             }
-            return context.executeFetchRequest(request, error: error) as [NSManagedObject]?
+            return context.executeFetchRequest(request, error: error) as! [NSManagedObject]?
         } else {
             return nil
         }
@@ -112,7 +112,7 @@ class Driver: NSObject {
         var results: [AnyObject]? = nil
 
         if let ctx = ctx {
-            return ctx.executeFetchRequest(fetchRequest, error: error) as [NSManagedObject]?
+            return ctx.executeFetchRequest(fetchRequest, error: error) as! [NSManagedObject]?
         }
         return nil
     }
@@ -243,6 +243,17 @@ class Driver: NSObject {
             }
         }
     }
+
+    /**
+    Peform block in background queue and save, no wait is needed
+    
+    :param: block
+    :param: saveSuccess
+    :param: saveFailure
+    */
+    func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
+        self.saveWithBlock(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: false)
+    }
     
     /**
     Peform block in background queue and save
@@ -252,7 +263,7 @@ class Driver: NSObject {
     :param: saveFailure
     :param: waitUntilFinished
     */
-    func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    func saveWithBlock(#block: (() -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool) {
         self.saveWithBlockWaitSave(block: { (save) -> Void in
             block?()
             save()
@@ -284,15 +295,26 @@ class Driver: NSObject {
     :param: block             Block to perform. Call save() to invoke save.
     :param: saveSuccess
     :param: saveFailure
+    */
+    func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?) {
+        self.saveWithBlockWaitSave(block: block, saveSuccess: saveSuccess, saveFailure: saveFailure, waitUntilFinished: false)
+    }
+    
+    /**
+    Perform in background queue and save (Manually call timing of save.)
+    
+    :param: block             Block to perform. Call save() to invoke save.
+    :param: saveSuccess
+    :param: saveFailure
     :param: waitUntilFinished
     */
-    func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool = false) {
+    func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished:Bool) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 var localContext = self.driverOperationQueue.context
                 block(save: { () -> Void in
                     var error: NSError? = nil
-                    if localContext.obtainPermanentIDsForObjects(localContext.insertedObjects.allObjects, error: &error) {
+                    if localContext.obtainPermanentIDsForObjects(Array(localContext.insertedObjects), error: &error) {
                         if error != nil {
                             dispatch_sync(dispatch_get_main_queue(), { () -> Void in
                                 saveFailure?(error: error)
@@ -325,12 +347,21 @@ class Driver: NSObject {
     }
     
     /**
+    Peform block in background queue and save, no wait is needed
+    
+    :param: block
+    */
+    func performBlock(#block: (() -> Void)?, completion: (() -> Void)?) {
+        self.performBlock(block: block, completion: completion, waitUntilFinished: false)
+    }
+    
+    /**
     Peform block in background queue and save
     
     :param: block
     :param: waitUntilFinished
     */
-    func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool = false) {
+    func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool) {
         if let block = block {
             let operation = DriverOperation { () -> Void in
                 block()
