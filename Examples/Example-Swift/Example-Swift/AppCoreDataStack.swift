@@ -130,7 +130,7 @@ class AppCoreDataStack : CoreDataStack {
     lazy var applicationDocumentsDirectory: NSURL = {
         let fileManager = NSFileManager.defaultManager()
         let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls.last as NSURL
+        return urls.last as! NSURL
     }()
     
     

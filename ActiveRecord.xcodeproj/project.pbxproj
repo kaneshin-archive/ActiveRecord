@@ -185,7 +185,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0600;
-				ORGANIZATIONNAME = "Shintaro Kaneko (http://kaneshinth.com)";
+				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					790BAE0119BC141300B10B2D = {
 						CreatedOnToolsVersion = 6.0;
