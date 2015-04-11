@@ -25,7 +25,7 @@ import Foundation
 import CoreData
 import ActiveRecord
 
-class AppCoreDataStack : CoreDataStack {
+class AppContext: NSObject, Context {
     
     override init() {
         super.init()
@@ -44,7 +44,7 @@ class AppCoreDataStack : CoreDataStack {
     }()
     
     /// Main queue context
-    override var defaultManagedObjectContext: NSManagedObjectContext? {
+    var defaultManagedObjectContext: NSManagedObjectContext? {
         get {
             return self.lazyDefaultManagedObjectContext
         }
@@ -64,7 +64,7 @@ class AppCoreDataStack : CoreDataStack {
     }()
 
     /// Context for writing to the PersistentStore
-    override var writerManagedObjectContext: NSManagedObjectContext? {
+    var writerManagedObjectContext: NSManagedObjectContext? {
         get {
             return self.lazyWriterManagedObjectContext
         }
@@ -94,11 +94,10 @@ class AppCoreDataStack : CoreDataStack {
     }()
     
     /// PersistentStoreCoordinator
-    override var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
+    var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
         get {
             return self.lazyPersistentStoreCoordinator
         }
-        set { }
     }
     
     
@@ -107,11 +106,10 @@ class AppCoreDataStack : CoreDataStack {
     }()
     
     /// ManagedObjectModel
-    override var managedObjectModel: NSManagedObjectModel? {
+    var managedObjectModel: NSManagedObjectModel? {
         get {
             return self.lazyManagedObjectModel
         }
-        set { }
     }
     
     lazy var lazyStoreURL: NSURL = {
@@ -119,11 +117,10 @@ class AppCoreDataStack : CoreDataStack {
     }()
 
     /// Store URL
-    override var storeURL: NSURL? {
+    var storeURL: NSURL? {
         get {
             return self.lazyStoreURL
         }
-        set { }
     }
 
     

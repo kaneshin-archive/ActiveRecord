@@ -36,23 +36,23 @@ public class ActiveRecord: NSObject {
     /// true if migration was not necessary on launch or have performed migration
     public class var migrationNotRequiredConfirmed: Bool {
         if let driver = Static.driver {
-            return driver.coreDataStack.migrationNotRequiredConfirmed
+            return Migrator(context: driver.ctx).isConfirmedCompatibility
         }
         return false
     }
-    
-    public class func setup(#coreDataStack: CoreDataStack) {
-        Static.driver = Driver(coreDataStack: coreDataStack)
+
+    public class func setup(#context: Context) {
+        Static.driver = Driver(context: context)
     }
-    
-    public class func tearDown(tearDownCoreDataStack: (CoreDataStack) -> Void) {
-        Static.driver?.tearDown(tearDownCoreDataStack)
+
+    public class func tearDown(tearDownContext: (Context) -> Void) {
+        Static.driver?.tearDown(tearDownContext)
         Static.driver = nil
     }
     
     public class func persistentStoreCoordinator() -> NSPersistentStoreCoordinator? {
         if let driver = self.driver {
-            return driver.coreDataStack.persistentStoreCoordinator
+            return driver.ctx.persistentStoreCoordinator
         }
         return nil
     }
@@ -131,7 +131,7 @@ public class ActiveRecord: NSObject {
         if let driver = self.driver {
             let required = driver.isRequiredMigration()
             if !required {
-                self.instantiateCoreDataStack()
+                // self.instantiateContext()
             }
             return required
         }
@@ -139,14 +139,19 @@ public class ActiveRecord: NSObject {
     }
     
     
-    /**
-    Instantiates the Core Data Stack (defaultManagedObjectContext, writerManagedObjectContext, persistentStoreCoordinator, managedObjectModel). This will trigger migration when needed.
-    */
-    public class func instantiateCoreDataStack() {
-        if let driver = self.driver {
-            driver.coreDataStack.instantiateStack()
-        }
-    }
+//    /**
+//    Instantiates the Core Data Stack (defaultManagedObjectContext, writerManagedObjectContext, persistentStoreCoordinator, managedObjectModel). This will trigger migration when needed.
+//    */
+//    public class func instantiateContext() {
+//        if let driver = self.driver {
+//            // driver.ctx.instantiateStack()
+//            driver.ctx.defaultManagedObjectContext
+//            Migrator.instance.isConfirmedCompatibility
+//            driver.ctx.mi
+//            self.defaultManagedObjectContext
+//            self.migrationNotRequiredConfirmed = true
+//        }
+//    }
 }
 
 
@@ -160,7 +165,7 @@ public extension NSManagedObject {
     :returns: Entity Description
     */
     public class func create(#entityName: String) -> NSManagedObject? {
-        return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.context())
+        return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.managedObjectContext())
     }
     
     /**
@@ -202,7 +207,7 @@ public extension NSManagedObject {
     */
     public class func delete(#entityName: String, predicate: NSPredicate) {
         var error: NSError? = nil
-        ActiveRecord.driver?.delete(entityName: entityName, predicate: predicate, context: ActiveRecord.driver?.context(), error: &error)
+        ActiveRecord.driver?.delete(entityName: entityName, predicate: predicate, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
     }
     
     /**
@@ -218,7 +223,7 @@ public extension NSManagedObject {
     */
     public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0) -> [NSManagedObject]? {
         var error: NSError? = nil
-        return ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit, context: ActiveRecord.driver?.context(), error: &error)
+        return ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
     }
     
     /**
@@ -232,7 +237,7 @@ public extension NSManagedObject {
     */
     public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> NSManagedObject? {
         var error: NSError? = nil
-        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: 0, limit: 1, context: ActiveRecord.driver?.context(), error: &error) {
+        if let objects = ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: 0, limit: 1, context: ActiveRecord.driver?.managedObjectContext(), error: &error) {
             return objects.first
         }
         return nil
@@ -247,7 +252,7 @@ public extension NSManagedObject {
     */
     public class func find(#fetchRequest: NSFetchRequest) -> [NSManagedObject]? {
         var error: NSError? = nil
-        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.context(), error: &error)
+        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
     }
     
     /**
@@ -261,7 +266,7 @@ public extension NSManagedObject {
     public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
         if let driver = ActiveRecord.driver {
             var error: NSError? = nil
-            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.context(), error: &error)
+            return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
         } else {
             return 0;
         }
@@ -283,7 +288,7 @@ public extension NSManagedObjectContext {
     */
     public class func save() {
         var error: NSError? = nil
-        ActiveRecord.driver?.save(ActiveRecord.driver?.context(), error: &error)
+        ActiveRecord.driver?.save(ActiveRecord.driver?.managedObjectContext(), error: &error)
     }
 
     /**
@@ -295,7 +300,7 @@ public extension NSManagedObjectContext {
     */
     public class func save(error: NSErrorPointer) -> Bool {
         if let driver =  ActiveRecord.driver {
-            return driver.save(ActiveRecord.driver?.context(), error: error)
+            return driver.save(ActiveRecord.driver?.managedObjectContext(), error: error)
         }
         return false
     }
@@ -306,7 +311,7 @@ public extension NSManagedObjectContext {
     :returns: the managed object context which should be used
     */
     public class func context() -> NSManagedObjectContext? {
-        return ActiveRecord.driver?.context()
+        return ActiveRecord.driver?.managedObjectContext()
     }
     
     /**

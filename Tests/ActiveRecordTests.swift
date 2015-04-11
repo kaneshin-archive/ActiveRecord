@@ -29,7 +29,7 @@ class ActiveRecordTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
-        ActiveRecord.setup(coreDataStack: TestCoreDataStack())
+        ActiveRecord.setup(context: TestContext())
     }
     
     override func tearDown() {

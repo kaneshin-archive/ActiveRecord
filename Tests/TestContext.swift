@@ -1,7 +1,6 @@
-// TestCoreDataStack.swift
+// TestContext.swift
 //
-// Copyright (c) 2014 Kenji Tayama
-// Copyright (c) 2014 Shintaro Kaneko
+// Copyright (c) 2015 Shintaro Kaneko
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +24,12 @@ import Foundation
 import CoreData
 import ActiveRecord
 
-class ___TestCoreDataStack : NSObject, Context {
-    
-    override init() {
-        super.init()
+class TestContext : NSObject, Context {
+
+    /// Main queue context
+
+    var defaultManagedObjectContext: NSManagedObjectContext? {
+        return self.lazyDefaultManagedObjectContext
     }
 
     private lazy var lazyDefaultManagedObjectContext: NSManagedObjectContext? = {
@@ -39,61 +40,50 @@ class ___TestCoreDataStack : NSObject, Context {
         var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
         managedObjectContext.parentContext = self.writerManagedObjectContext
         managedObjectContext.mergePolicy = NSOverwriteMergePolicy
-        
         return managedObjectContext
     }()
     
-    /// Main queue context
-    var defaultManagedObjectContext: NSManagedObjectContext? {
-        get {
-            return self.lazyDefaultManagedObjectContext
-        }
-        set {}
+    /// Context for writing to the PersistentStore
+
+    var writerManagedObjectContext: NSManagedObjectContext? {
+        return self.lazyWriterManagedObjectContext
     }
-    
-    
+
     private lazy var lazyWriterManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
             return nil
         }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
         managedObjectContext.persistentStoreCoordinator = coordinator
         managedObjectContext.mergePolicy = NSOverwriteMergePolicy
         return managedObjectContext
     }()
 
-    /// Context for writing to the PersistentStore
-    var writerManagedObjectContext: NSManagedObjectContext? {
-        get {
-            return self.lazyWriterManagedObjectContext
-        }
-        set { }
+    /// PersistentStoreCoordinator
+
+    var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
+        return self.lazyPersistentStoreCoordinator
     }
-    
-    
+
     lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
         if let managedObjectModel = self.managedObjectModel {
             var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
             var error: NSError? = nil
-
-            if coordinator?.addPersistentStoreWithType(NSInMemoryStoreType, configuration: nil, URL: nil, options: nil, error: &error) == true {
-                println("could not add persistent store : \(error?.localizedDescription)")
+            if coordinator?.addPersistentStoreWithType(NSInMemoryStoreType, configuration: nil, URL: nil, options: nil, error: &error) == nil {
+                assert(false, "Unresolved error \(error), \(error!.userInfo)")
             }
             return coordinator
         }
         return nil;
     }()
-    
-    /// PersistentStoreCoordinator
-    var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
-        get {
-            return self.lazyPersistentStoreCoordinator
-        }
-        set { }
+
+    /// ManagedObjectModel
+
+    var managedObjectModel: NSManagedObjectModel? {
+        return self.lazyManagedObjectModel
     }
-    
-    
+
     lazy var lazyManagedObjectModel: NSManagedObjectModel? = {
         let testsBundle: NSBundle = NSBundle(forClass: self.dynamicType)
         let modelURL: NSURL? = testsBundle.URLForResource("ActiveRecordTests", withExtension: "momd")
@@ -102,18 +92,11 @@ class ___TestCoreDataStack : NSObject, Context {
         }
         return nil
     }()
-    
-    /// ManagedObjectModel
-    var managedObjectModel: NSManagedObjectModel? {
-        get {
-            return self.lazyManagedObjectModel
-        }
-        set { }
-    }
 
     /// Store URL
+
     var storeURL: NSURL? {
         return nil
     }
-
+    
 }

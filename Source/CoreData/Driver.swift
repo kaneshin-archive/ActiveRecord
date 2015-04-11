@@ -30,7 +30,7 @@ class Driver: NSObject {
         static var driverOperationQueue: DriverOperationQueue?
     }
 
-    var coreDataStack : CoreDataStack
+    var ctx : Context
 
     var driverOperationQueue: DriverOperationQueue {
         if let queue = Static.driverOperationQueue {
@@ -43,13 +43,13 @@ class Driver: NSObject {
         return queue
     }
     
-    init(coreDataStack: CoreDataStack) {
-        self.coreDataStack = coreDataStack
+    init(context: Context) {
+        self.ctx = context
     }
-    
-    func tearDown(tearDownCoreDataStack: (CoreDataStack) -> Void) {
+
+    func tearDown(tearDownContext: (Context) -> Void) {
         Static.driverOperationQueue = nil
-        tearDownCoreDataStack(self.coreDataStack)
+        tearDownContext(self.ctx)
     }
     
     // MARK: - CRUD
@@ -117,7 +117,7 @@ class Driver: NSObject {
     :returns: array of managed objects. nil if an error occurred.
     */
     func read(fetchRequest: NSFetchRequest, context: NSManagedObjectContext? = nil, error: NSErrorPointer) -> [NSManagedObject]? {
-        let ctx = context != nil ? context : self.context()
+        let ctx = context != nil ? context : self.managedObjectContext()
         var results: [AnyObject]? = nil
 
         if let ctx = ctx {
@@ -163,14 +163,13 @@ class Driver: NSObject {
         if let parentContext = context?.parentContext {
             parentContext.performBlock({ () -> Void in
                 if parentContext.save(error) {
-                    if parentContext == self.coreDataStack.writerManagedObjectContext {
-                        Debug.print("Data stored")
-                    } else if parentContext == self.coreDataStack.defaultManagedObjectContext {
-                        Debug.print("MainQueueContext saved")
+                    if parentContext == self.ctx.writerManagedObjectContext {
+                        Log.print(.TRACE, "Data stored")
+                    } else if parentContext == self.ctx.defaultManagedObjectContext {
+                        Log.print(.TRACE, "MainQueueContext saved")
                     } else {
-                        Debug.print("Recursive save \(parentContext)")
+                        Log.print(.TRACE, "Recursive save \(parentContext)")
                     }
-                    
                     self.recursiveSave(parentContext, error: error)
                 }
             })
@@ -199,18 +198,18 @@ class Driver: NSObject {
                     }
                 })
                 if error.memory != nil {
-                    Debug.print("Save failed : \(error.memory?.localizedDescription)")
+                    Log.print(.TRACE, "Save failed : \(error.memory?.localizedDescription)")
                     return false
                 } else {
-                    Debug.print("Save Success")
+                    Log.print(.TRACE, "Save Success")
                     return true
                 }
             } else {
-                Debug.print("Save Success (No changes)")
+                Log.print(.TRACE, "Save Success (No changes)")
                 return true
             }
         } else {
-            Debug.print("Save failed : context is nil")
+            Log.print(.TRACE, "Save failed : context is nil")
             return false
         }
     }
@@ -318,7 +317,7 @@ class Driver: NSObject {
     */
     func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished: Bool) {
         if let block = block {
-            if let context = self.coreDataStack.defaultManagedObjectContext {
+            if let context = self.ctx.defaultManagedObjectContext {
                 let operation = DriverOperation(parentContext: context) { (localContext) -> Void in
                     block(save: { () -> Void in
                         var error: NSError? = nil
@@ -380,7 +379,7 @@ class Driver: NSObject {
     */
     func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool) {
         if let block = block {
-            if let context = self.coreDataStack.defaultManagedObjectContext {
+            if let context = self.ctx.defaultManagedObjectContext {
                 let operation = DriverOperation(parentContext: context) { (localContext) -> Void in
                     block()
                     if let completion = completion {
@@ -407,10 +406,10 @@ class Driver: NSObject {
     
     :returns: A managed object context associated to current operation queue.
     */
-    func context() -> NSManagedObjectContext? {
+    func managedObjectContext() -> NSManagedObjectContext? {
         if let queue = NSOperationQueue.currentQueue() {
             if queue == NSOperationQueue.mainQueue() {
-                return self.coreDataStack.defaultManagedObjectContext
+                return self.ctx.defaultManagedObjectContext
             } else if queue.isKindOfClass(DriverOperationQueue) {
                 return Static.driverOperationQueue?.currentExecutingOperation?.context
             }
@@ -419,7 +418,7 @@ class Driver: NSObject {
         // temporarily use "context for current thread"
         // context associated to thread
         if NSThread.isMainThread() {
-            return self.coreDataStack.defaultManagedObjectContext
+            return self.ctx.defaultManagedObjectContext
         } else {
             let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
             let threadDictionary = NSThread.currentThread().threadDictionary
@@ -427,7 +426,7 @@ class Driver: NSObject {
                 return context
             } else {
                 let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
-                context.parentContext = self.coreDataStack.defaultManagedObjectContext
+                context.parentContext = self.ctx.defaultManagedObjectContext
                 context.mergePolicy = NSOverwriteMergePolicy
                 threadDictionary.setObject(context, forKey: kNSManagedObjectContextThreadKey)
                 return context
@@ -447,7 +446,7 @@ class Driver: NSObject {
     :returns: The default Managed Object Context
     */
     func mainContext() -> NSManagedObjectContext? {
-        return self.coreDataStack.defaultManagedObjectContext
+        return self.ctx.defaultManagedObjectContext
     }
     
     
@@ -457,7 +456,7 @@ class Driver: NSObject {
     :returns: true if migration is needed. false if not needed (includes case when persistent store is not found).
     */
     func isRequiredMigration() -> Bool {
-        return self.coreDataStack.isRequiredMigration()
+        return Migrator(context: self.ctx).required
     }
 }
     
@@ -466,7 +465,7 @@ class Driver: NSObject {
 
 extension Driver: Printable {
     override var description: String {
-        let description = "Stored URL: \(self.coreDataStack.storeURL)"
+        let description = "Stored URL: \(self.ctx.storeURL)"
         return description
     }
 }
@@ -482,7 +481,7 @@ class DriverOperationQueue: NSOperationQueue {
     :param: op Operation
     */
     override func addOperation(op: NSOperation) {
-        Debug.print("Add Operation")
+        Log.print(.TRACE, "Add Operation")
         if let lastOperation = self.operations.last as? NSOperation {
             op.addDependency(lastOperation)
         }

@@ -1,6 +1,6 @@
-// AppDelegate.swift
+// Debug.swift
 //
-// Copyright (c) 2014 Shintaro Kaneko
+// Copyright (c) 2015 Shintaro Kaneko
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import UIKit
-import ActiveRecord
+import Foundation
 
-@UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class Log: NSObject {
 
-    var window: UIWindow?
+    enum Level: String {
+        case ERROR = "ERROR"
+        case WARN = "WARN"
+        case INFO = "INFO"
+        case TRACE = "TRACE"
+    }
 
+    var level: Level = .INFO
 
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        ActiveRecord.setup(context: AppContext())
-        return true
+    class func print(_ level: Level = .INFO, _ object: AnyObject!, function: String = __FUNCTION__, line: Int = __LINE__) {
+        #if DEBUG
+            println("[\(level.rawValue)][\(function):\(line)] \(body)")
+        #endif
     }
 
 }
-

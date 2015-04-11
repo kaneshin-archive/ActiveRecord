@@ -1,4 +1,4 @@
-// Debug.swift
+// Context.swift
 //
 // Copyright (c) 2015 Shintaro Kaneko
 //
@@ -21,22 +21,24 @@
 // THE SOFTWARE.
 
 import Foundation
+import CoreData
 
-class Debug: NSObject {
+public protocol Context {
 
-    enum level {
-        case warn
-        case notice
-        case info
-        case verbose
-    }
+    /// Main queue context
+    var defaultManagedObjectContext: NSManagedObjectContext? { get }
 
-    var lv = level.notice
+    /// Context for writing to the PersistentStore
+    var writerManagedObjectContext: NSManagedObjectContext? { get }
 
-    class func print(_ body: AnyObject! = "", function: String = __FUNCTION__, line: Int = __LINE__) {
-        #if DEBUG
-            println("[\(function) : \(line)] \(body)")
-        #endif
-    }
+    /// PersistentStoreCoordinator
+    var persistentStoreCoordinator: NSPersistentStoreCoordinator? { get }
+
+    /// ManagedObjectModel
+    var managedObjectModel: NSManagedObjectModel? { get }
+
+    /// Store URL
+    var storeURL: NSURL? { get }
 
 }
+
