@@ -105,12 +105,12 @@
 		798277631AD8110000ABA2E8 /* Example Swift */ = {
 			isa = PBXGroup;
 			children = (
-				798277931AD811BB00ABA2E8 /* Example_Swift.xcdatamodeld */,
-				798277861AD8112F00ABA2E8 /* AppContext.swift */,
 				798277871AD8112F00ABA2E8 /* AppDelegate.swift */,
+				798277861AD8112F00ABA2E8 /* AppContext.swift */,
+				7982778A1AD8112F00ABA2E8 /* MasterViewController.swift */,
 				798277881AD8112F00ABA2E8 /* DetailViewController.swift */,
 				798277891AD8112F00ABA2E8 /* Event.swift */,
-				7982778A1AD8112F00ABA2E8 /* MasterViewController.swift */,
+				798277931AD811BB00ABA2E8 /* Example_Swift.xcdatamodeld */,
 				7982776C1AD8110000ABA2E8 /* Main.storyboard */,
 				7982776F1AD8110000ABA2E8 /* Images.xcassets */,
 				798277711AD8110000ABA2E8 /* LaunchScreen.xib */,

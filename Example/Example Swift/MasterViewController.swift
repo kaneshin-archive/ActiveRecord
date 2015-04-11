@@ -52,7 +52,6 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
                 for i in 0...5 {
                     let entity = self.fetchedResultsController.fetchRequest.entity
                     var newEvent = Event.create(entityName: entity!.name!) as? Event
-                    
                     newEvent!.timeStamp = NSDate()
                     event = newEvent
                 }

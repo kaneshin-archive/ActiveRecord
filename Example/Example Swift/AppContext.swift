@@ -26,9 +26,17 @@ import CoreData
 import ActiveRecord
 
 class AppContext: NSObject, Context {
-    
+
+    private let automaticallyDeleteStoreOnMismatch: Bool = true
+
     override init() {
         super.init()
+    }
+
+    /// Main queue context
+
+    var defaultManagedObjectContext: NSManagedObjectContext? {
+        return self.lazyDefaultManagedObjectContext
     }
 
     private lazy var lazyDefaultManagedObjectContext: NSManagedObjectContext? = {
@@ -39,40 +47,33 @@ class AppContext: NSObject, Context {
         var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
         managedObjectContext.parentContext = self.writerManagedObjectContext
         managedObjectContext.mergePolicy = NSOverwriteMergePolicy
-        
         return managedObjectContext
     }()
-    
-    /// Main queue context
-    var defaultManagedObjectContext: NSManagedObjectContext? {
-        get {
-            return self.lazyDefaultManagedObjectContext
-        }
-        set {}
+
+    /// Context for writing to the PersistentStore
+
+    var writerManagedObjectContext: NSManagedObjectContext? {
+        return self.lazyWriterManagedObjectContext
     }
-    
-    
+
     private lazy var lazyWriterManagedObjectContext: NSManagedObjectContext? = {
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {
             return nil
         }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
         managedObjectContext.persistentStoreCoordinator = coordinator
         managedObjectContext.mergePolicy = NSOverwriteMergePolicy
         return managedObjectContext
     }()
 
-    /// Context for writing to the PersistentStore
-    var writerManagedObjectContext: NSManagedObjectContext? {
-        get {
-            return self.lazyWriterManagedObjectContext
-        }
-        set { }
-    }
-    
-    lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
+    /// PersistentStoreCoordinator
 
+    var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
+        return self.lazyPersistentStoreCoordinator
+    }
+
+    lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
         if let managedObjectModel = self.managedObjectModel {
             var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
             var error: NSError? = nil
@@ -93,38 +94,26 @@ class AppContext: NSObject, Context {
         return nil;
     }()
     
-    /// PersistentStoreCoordinator
-    var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
-        get {
-            return self.lazyPersistentStoreCoordinator
-        }
+    /// ManagedObjectModel
+
+    var managedObjectModel: NSManagedObjectModel? {
+        return self.lazyManagedObjectModel
     }
-    
-    
+
     lazy var lazyManagedObjectModel: NSManagedObjectModel = {
         return NSManagedObjectModel.mergedModelFromBundles(nil)!
     }()
-    
-    /// ManagedObjectModel
-    var managedObjectModel: NSManagedObjectModel? {
-        get {
-            return self.lazyManagedObjectModel
-        }
+
+    /// Store URL
+
+    var storeURL: NSURL? {
+        return self.lazyStoreURL
     }
-    
+
     lazy var lazyStoreURL: NSURL = {
         return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
     }()
 
-    /// Store URL
-    var storeURL: NSURL? {
-        get {
-            return self.lazyStoreURL
-        }
-    }
-
-    
-    private let automaticallyDeleteStoreOnMismatch: Bool = true
     
     /// default store name
     lazy var defaultStoreName: String = {
