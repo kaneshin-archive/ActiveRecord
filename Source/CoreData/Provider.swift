@@ -23,18 +23,18 @@
 import Foundation
 import CoreData
 
-class CoreDataModel: NSObject {
+class Provider: NSObject {
 
-    private var ctx: Context?
+    private var context: Context?
 
     init(context: Context?) {
         super.init()
-        self.ctx = context
+        self.context = context
     }
 
 }
 
-class Migrator: CoreDataModel {
+class Migrator: Provider {
 
     var isConfirmedCompatibility: Bool = false
 
@@ -44,7 +44,7 @@ class Migrator: CoreDataModel {
     :returns: true if migration is needed. false if not needed (includes case when persistent store is not found).
     */
     var required: Bool {
-        if let storeURL = self.ctx?.storeURL {
+        if let storeURL = self.context?.storeURL {
             var error: NSError? = nil
             if !storeURL.checkResourceIsReachableAndReturnError(&error) {
                 // Couldn't find a persistent store.
@@ -53,7 +53,7 @@ class Migrator: CoreDataModel {
             }
 
             // Check compatibility
-            if let managedObjectModel = self.ctx?.managedObjectModel {
+            if let managedObjectModel = self.context?.managedObjectModel {
                 let metadata = NSPersistentStoreCoordinator.metadataForPersistentStoreOfType(NSSQLiteStoreType, URL: storeURL, error: &error)
                 let isCompatible: Bool = managedObjectModel.isConfiguration(nil, compatibleWithStoreMetadata: metadata)
                 if isCompatible {

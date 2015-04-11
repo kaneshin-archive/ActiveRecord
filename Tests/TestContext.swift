@@ -1,5 +1,6 @@
 // TestContext.swift
 //
+// Copyright (c) 2014 Kenji Tayame
 // Copyright (c) 2015 Shintaro Kaneko
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy

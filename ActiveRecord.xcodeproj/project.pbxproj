@@ -8,13 +8,17 @@
 
 /* Begin PBXBuildFile section */
 		790BAE0819BC141300B10B2D /* ActiveRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = 790BAE0719BC141300B10B2D /* ActiveRecord.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		790BAE1219BC141300B10B2D /* ActiveRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */; };
 		790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1919BC14E500B10B2D /* ActiveRecord.swift */; };
 		791070A419D1315D00649AD7 /* Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791070A319D1315D00649AD7 /* Driver.swift */; };
 		798277CC1AD8149900ABA2E8 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798277CB1AD8149900ABA2E8 /* Log.swift */; };
-		798278021AD82F2D00ABA2E8 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278011AD82F2D00ABA2E8 /* Context.swift */; };
 		798278041AD83FC500ABA2E8 /* TestContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278031AD83FC500ABA2E8 /* TestContext.swift */; };
-		798278061AD8454200ABA2E8 /* CoreDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278051AD8454200ABA2E8 /* CoreDataModel.swift */; };
+		798278061AD8454200ABA2E8 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278051AD8454200ABA2E8 /* Provider.swift */; };
+		798278091AD9029900ABA2E8 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278081AD9029900ABA2E8 /* Context.swift */; };
+		7982780C1AD9072800ABA2E8 /* CreateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7982780B1AD9072800ABA2E8 /* CreateTests.swift */; };
+		7982780E1AD9078400ABA2E8 /* ActiveRecordTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7982780D1AD9078300ABA2E8 /* ActiveRecordTestCase.swift */; };
+		798278101AD907D600ABA2E8 /* ReadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7982780F1AD907D600ABA2E8 /* ReadTests.swift */; };
+		798278121AD907DF00ABA2E8 /* UpdateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278111AD907DF00ABA2E8 /* UpdateTests.swift */; };
+		798278141AD907E800ABA2E8 /* DeleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278131AD907E800ABA2E8 /* DeleteTests.swift */; };
 		7C9BE9A919F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C9BE9A719F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld */; };
 		7C9BE9B119F9EF8A0080941B /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C9BE9B019F9EF8A0080941B /* Event.swift */; };
 /* End PBXBuildFile section */
@@ -35,13 +39,17 @@
 		790BAE0719BC141300B10B2D /* ActiveRecord.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActiveRecord.h; sourceTree = "<group>"; };
 		790BAE0D19BC141300B10B2D /* ActiveRecordTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ActiveRecordTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		790BAE1019BC141300B10B2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveRecordTests.swift; sourceTree = "<group>"; };
 		790BAE1919BC14E500B10B2D /* ActiveRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecord.swift; sourceTree = "<group>"; };
 		791070A319D1315D00649AD7 /* Driver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Driver.swift; sourceTree = "<group>"; };
 		798277CB1AD8149900ABA2E8 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
-		798278011AD82F2D00ABA2E8 /* Context.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
 		798278031AD83FC500ABA2E8 /* TestContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestContext.swift; sourceTree = "<group>"; };
-		798278051AD8454200ABA2E8 /* CoreDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataModel.swift; sourceTree = "<group>"; };
+		798278051AD8454200ABA2E8 /* Provider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
+		798278081AD9029900ABA2E8 /* Context.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
+		7982780B1AD9072800ABA2E8 /* CreateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateTests.swift; sourceTree = "<group>"; };
+		7982780D1AD9078300ABA2E8 /* ActiveRecordTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecordTestCase.swift; sourceTree = "<group>"; };
+		7982780F1AD907D600ABA2E8 /* ReadTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadTests.swift; sourceTree = "<group>"; };
+		798278111AD907DF00ABA2E8 /* UpdateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UpdateTests.swift; sourceTree = "<group>"; };
+		798278131AD907E800ABA2E8 /* DeleteTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeleteTests.swift; sourceTree = "<group>"; };
 		7C9BE9A819F9EA5A0080941B /* ActiveRecordTests.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ActiveRecordTests.xcdatamodel; sourceTree = "<group>"; };
 		7C9BE9B019F9EF8A0080941B /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -87,7 +95,7 @@
 			children = (
 				790BAE0719BC141300B10B2D /* ActiveRecord.h */,
 				790BAE1919BC14E500B10B2D /* ActiveRecord.swift */,
-				798278001AD82EF500ABA2E8 /* Context */,
+				798278081AD9029900ABA2E8 /* Context.swift */,
 				7910709E19D1303B00649AD7 /* CoreData */,
 				798277CA1AD8145200ABA2E8 /* Utilities */,
 				790BAE0519BC141300B10B2D /* Supporting Files */,
@@ -106,8 +114,9 @@
 		790BAE0E19BC141300B10B2D /* Tests */ = {
 			isa = PBXGroup;
 			children = (
-				790BAE1119BC141300B10B2D /* ActiveRecordTests.swift */,
 				798278031AD83FC500ABA2E8 /* TestContext.swift */,
+				7982780D1AD9078300ABA2E8 /* ActiveRecordTestCase.swift */,
+				7982780A1AD906DF00ABA2E8 /* CRUD */,
 				7C9BE9B019F9EF8A0080941B /* Event.swift */,
 				7C9BE9A719F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld */,
 				790BAE0F19BC141300B10B2D /* Supporting Files */,
@@ -126,7 +135,7 @@
 		7910709E19D1303B00649AD7 /* CoreData */ = {
 			isa = PBXGroup;
 			children = (
-				798278051AD8454200ABA2E8 /* CoreDataModel.swift */,
+				798278051AD8454200ABA2E8 /* Provider.swift */,
 				791070A319D1315D00649AD7 /* Driver.swift */,
 			);
 			path = CoreData;
@@ -140,12 +149,15 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
-		798278001AD82EF500ABA2E8 /* Context */ = {
+		7982780A1AD906DF00ABA2E8 /* CRUD */ = {
 			isa = PBXGroup;
 			children = (
-				798278011AD82F2D00ABA2E8 /* Context.swift */,
+				7982780B1AD9072800ABA2E8 /* CreateTests.swift */,
+				7982780F1AD907D600ABA2E8 /* ReadTests.swift */,
+				798278111AD907DF00ABA2E8 /* UpdateTests.swift */,
+				798278131AD907E800ABA2E8 /* DeleteTests.swift */,
 			);
-			path = Context;
+			path = CRUD;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -256,9 +268,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				798277CC1AD8149900ABA2E8 /* Log.swift in Sources */,
-				798278061AD8454200ABA2E8 /* CoreDataModel.swift in Sources */,
+				798278061AD8454200ABA2E8 /* Provider.swift in Sources */,
 				791070A419D1315D00649AD7 /* Driver.swift in Sources */,
-				798278021AD82F2D00ABA2E8 /* Context.swift in Sources */,
+				798278091AD9029900ABA2E8 /* Context.swift in Sources */,
 				790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -267,10 +279,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				798278101AD907D600ABA2E8 /* ReadTests.swift in Sources */,
+				7982780E1AD9078400ABA2E8 /* ActiveRecordTestCase.swift in Sources */,
+				798278121AD907DF00ABA2E8 /* UpdateTests.swift in Sources */,
 				7C9BE9B119F9EF8A0080941B /* Event.swift in Sources */,
 				798278041AD83FC500ABA2E8 /* TestContext.swift in Sources */,
+				798278141AD907E800ABA2E8 /* DeleteTests.swift in Sources */,
 				7C9BE9A919F9EA5A0080941B /* ActiveRecordTests.xcdatamodeld in Sources */,
-				790BAE1219BC141300B10B2D /* ActiveRecordTests.swift in Sources */,
+				7982780C1AD9072800ABA2E8 /* CreateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

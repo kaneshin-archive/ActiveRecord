@@ -36,7 +36,7 @@ public class ActiveRecord: NSObject {
     /// true if migration was not necessary on launch or have performed migration
     public class var migrationNotRequiredConfirmed: Bool {
         if let driver = Static.driver {
-            return Migrator(context: driver.ctx).isConfirmedCompatibility
+            return Migrator(context: driver.context).isConfirmedCompatibility
         }
         return false
     }
@@ -52,7 +52,7 @@ public class ActiveRecord: NSObject {
     
     public class func persistentStoreCoordinator() -> NSPersistentStoreCoordinator? {
         if let driver = self.driver {
-            return driver.ctx.persistentStoreCoordinator
+            return driver.context.persistentStoreCoordinator
         }
         return nil
     }

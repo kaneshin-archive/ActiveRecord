@@ -26,30 +26,26 @@ import CoreData
 class Driver: NSObject {
     
     struct Static {
-        static let maxConcurrentOperationCount = 1
         static var driverOperationQueue: DriverOperationQueue?
     }
-
-    var ctx : Context
 
     var driverOperationQueue: DriverOperationQueue {
         if let queue = Static.driverOperationQueue {
             return queue
         }
-        
-        let queue = DriverOperationQueue()
-        queue.maxConcurrentOperationCount = Static.maxConcurrentOperationCount
-        Static.driverOperationQueue = queue
-        return queue
+        Static.driverOperationQueue = DriverOperationQueue()
+        return Static.driverOperationQueue!
     }
-    
+
+    var context : Context
+
     init(context: Context) {
-        self.ctx = context
+        self.context = context
     }
 
     func tearDown(tearDownContext: (Context) -> Void) {
         Static.driverOperationQueue = nil
-        tearDownContext(self.ctx)
+        tearDownContext(self.context)
     }
     
     // MARK: - CRUD
@@ -163,9 +159,9 @@ class Driver: NSObject {
         if let parentContext = context?.parentContext {
             parentContext.performBlock({ () -> Void in
                 if parentContext.save(error) {
-                    if parentContext == self.ctx.writerManagedObjectContext {
+                    if parentContext == self.context.writerManagedObjectContext {
                         Log.print(.TRACE, "Data stored")
-                    } else if parentContext == self.ctx.defaultManagedObjectContext {
+                    } else if parentContext == self.context.defaultManagedObjectContext {
                         Log.print(.TRACE, "MainQueueContext saved")
                     } else {
                         Log.print(.TRACE, "Recursive save \(parentContext)")
@@ -317,7 +313,7 @@ class Driver: NSObject {
     */
     func saveWithBlockWaitSave(#block: ((save: (() -> Void)) -> Void)?, saveSuccess: (() -> Void)?, saveFailure: ((error: NSError?) -> Void)?, waitUntilFinished: Bool) {
         if let block = block {
-            if let context = self.ctx.defaultManagedObjectContext {
+            if let context = self.context.defaultManagedObjectContext {
                 let operation = DriverOperation(parentContext: context) { (localContext) -> Void in
                     block(save: { () -> Void in
                         var error: NSError? = nil
@@ -379,7 +375,7 @@ class Driver: NSObject {
     */
     func performBlock(#block: (() -> Void)?, completion: (() -> Void)?, waitUntilFinished: Bool) {
         if let block = block {
-            if let context = self.ctx.defaultManagedObjectContext {
+            if let context = self.context.defaultManagedObjectContext {
                 let operation = DriverOperation(parentContext: context) { (localContext) -> Void in
                     block()
                     if let completion = completion {
@@ -409,7 +405,7 @@ class Driver: NSObject {
     func managedObjectContext() -> NSManagedObjectContext? {
         if let queue = NSOperationQueue.currentQueue() {
             if queue == NSOperationQueue.mainQueue() {
-                return self.ctx.defaultManagedObjectContext
+                return self.context.defaultManagedObjectContext
             } else if queue.isKindOfClass(DriverOperationQueue) {
                 return Static.driverOperationQueue?.currentExecutingOperation?.context
             }
@@ -418,7 +414,7 @@ class Driver: NSObject {
         // temporarily use "context for current thread"
         // context associated to thread
         if NSThread.isMainThread() {
-            return self.ctx.defaultManagedObjectContext
+            return self.context.defaultManagedObjectContext
         } else {
             let kNSManagedObjectContextThreadKey = "kNSManagedObjectContextThreadKey"
             let threadDictionary = NSThread.currentThread().threadDictionary
@@ -426,7 +422,7 @@ class Driver: NSObject {
                 return context
             } else {
                 let context = NSManagedObjectContext(concurrencyType: NSManagedObjectContextConcurrencyType.PrivateQueueConcurrencyType)
-                context.parentContext = self.ctx.defaultManagedObjectContext
+                context.parentContext = self.context.defaultManagedObjectContext
                 context.mergePolicy = NSOverwriteMergePolicy
                 threadDictionary.setObject(context, forKey: kNSManagedObjectContextThreadKey)
                 return context
@@ -446,7 +442,7 @@ class Driver: NSObject {
     :returns: The default Managed Object Context
     */
     func mainContext() -> NSManagedObjectContext? {
-        return self.ctx.defaultManagedObjectContext
+        return self.context.defaultManagedObjectContext
     }
     
     
@@ -456,7 +452,7 @@ class Driver: NSObject {
     :returns: true if migration is needed. false if not needed (includes case when persistent store is not found).
     */
     func isRequiredMigration() -> Bool {
-        return Migrator(context: self.ctx).required
+        return Migrator(context: self.context).required
     }
 }
     
@@ -465,7 +461,7 @@ class Driver: NSObject {
 
 extension Driver: Printable {
     override var description: String {
-        let description = "Stored URL: \(self.ctx.storeURL)"
+        let description = "Stored URL: \(self.context.storeURL)"
         return description
     }
 }
@@ -474,7 +470,12 @@ extension Driver: Printable {
 *  Operation Queue to use when performing blocks in background
 */
 class DriverOperationQueue: NSOperationQueue {
-    
+
+    override init() {
+        super.init()
+        self.maxConcurrentOperationCount = 1
+    }
+
     /**
     Add an Operaion to this Operaion Queue. Operations will run in serial.
     
