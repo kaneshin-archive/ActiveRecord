@@ -42,3 +42,85 @@ public protocol Context {
 
 }
 
+public class ARContext: NSObject, Context {
+
+    public override init() {
+        super.init()
+    }
+
+    /// Main queue context
+    public var defaultManagedObjectContext: NSManagedObjectContext? {
+        return self.lazyDefaultManagedObjectContext
+    }
+
+    /// Context for writing to the PersistentStore
+    public var writerManagedObjectContext: NSManagedObjectContext? {
+        return self.lazyWriterManagedObjectContext
+    }
+
+    /// PersistentStoreCoordinator
+    public var persistentStoreCoordinator: NSPersistentStoreCoordinator?
+
+    /// ManagedObjectModel
+    public var managedObjectModel: NSManagedObjectModel? {
+        return self.lazyManagedObjectModel
+    }
+
+    /// Store URL
+    public var storeURL: NSURL? {
+        return self.lazyStoreURL
+    }
+
+    //////////////////////////////////////////////////
+
+    private lazy var lazyDefaultManagedObjectContext: NSManagedObjectContext? = {
+        let coordinator = self.persistentStoreCoordinator
+        if coordinator == nil {
+            return nil
+        }
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
+        managedObjectContext.parentContext = self.writerManagedObjectContext
+        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
+        return managedObjectContext
+    }()
+
+    private lazy var lazyWriterManagedObjectContext: NSManagedObjectContext? = {
+        let coordinator = self.persistentStoreCoordinator
+        if coordinator == nil {
+            return nil
+        }
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
+        managedObjectContext.persistentStoreCoordinator = coordinator
+        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
+        return managedObjectContext
+    }()
+
+    lazy var lazyManagedObjectModel: NSManagedObjectModel = {
+        return NSManagedObjectModel.mergedModelFromBundles(nil)!
+    }()
+
+    lazy var lazyStoreURL: NSURL = {
+        return self.applicationDocumentsDirectory.URLByAppendingPathComponent(self.defaultStoreName)
+    }()
+
+    /// default store name
+    lazy var defaultStoreName: String = {
+        var defaultName = NSBundle.mainBundle().objectForInfoDictionaryKey(String(kCFBundleNameKey)) as? String
+        if defaultName == nil {
+            defaultName = "DefaultStore.sqlite"
+        }
+        if !(defaultName!.hasSuffix("sqlite")) {
+            defaultName = defaultName?.stringByAppendingPathExtension("sqlite")
+        }
+        return defaultName!
+    }()
+
+    /// Application's document directory
+    lazy var applicationDocumentsDirectory: NSURL = {
+        let fileManager = NSFileManager.defaultManager()
+        let urls = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
+        return urls.last as! NSURL
+    }()
+
+}
+

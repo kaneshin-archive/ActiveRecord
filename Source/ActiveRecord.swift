@@ -156,84 +156,74 @@ public class ActiveRecord: NSObject {
 
 
 public extension NSManagedObject {
+
+    // MARK: - Create
     
     /**
-    Create a managed object
+        Create a managed object
     
-    :param: entityName entityName of object to create.
+        :param: entityName entityName of object to create.
     
-    :returns: Entity Description
+        :returns: Entity Description
     */
     public class func create(#entityName: String) -> NSManagedObject? {
         return ActiveRecord.driver?.create(entityName, context: ActiveRecord.driver?.managedObjectContext())
     }
     
     /**
-    Create a temporary managed object which does not live inside a managed object context.
+        Create a temporary managed object which does not live inside a managed object context.
     
-    :param: entityName entityName of object to create.
+        :param: entityName entityName of object to create.
     
-    :returns: Entity Description
+        :returns: Entity Description
     */
     public class func createAsTemporary(#entityName: String) -> NSManagedObject? {
-        if let context = NSManagedObjectContext.context() {
+        if let context = ActiveRecord.driver?.managedObjectContext() {
             if let entityDescription = NSEntityDescription.entityForName(entityName, inManagedObjectContext: context) {
                 return self(entity: entityDescription, insertIntoManagedObjectContext: nil)
             }
         }
         return nil
     }
-    
-    /**
-    Save the managed object context which this managed object lives in.
-    */
-    public func save() {
-        var error: NSError? = nil
-        ActiveRecord.driver?.save(self.managedObjectContext, error: &error)
-    }
-    
-    /**
-    Delete this object
-    */
-    public func delete() {
-        ActiveRecord.driver?.delete(object: self)
-    }
+
+    // MARK: - Read
 
     /**
-    Delete all managed objects using predicate
-
-    :param: entityName
-    :param: predicate
-    */
-    public class func delete(#entityName: String, predicate: NSPredicate) {
-        var error: NSError? = nil
-        ActiveRecord.driver?.delete(entityName: entityName, predicate: predicate, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
-    }
+        Find managed objects
     
-    /**
-    Find managed objects
+        :param: entityName
+        :param: predicate
+        :param: sortDescriptors
+        :param: offset
+        :param: limit
     
-    :param: entityName
-    :param: predicate
-    :param: sortDescriptors
-    :param: offset
-    :param: limit
-    
-    :returns: array of managed objects
+        :returns: array of managed objects
     */
     public class func find(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil, offset: Int? = 0, limit: Int? = 0) -> [NSManagedObject]? {
         var error: NSError? = nil
         return ActiveRecord.driver?.read(entityName, predicate: predicate, sortDescriptors: sortDescriptors, offset: offset, limit: limit, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
     }
-    
+
     /**
-    Find first managed object
+        Find managed objects with fetchRequest
+
+        :param: fetchRequest
+
+        :returns: array of managed objects
+    */
+    public class func find(#fetchRequest: NSFetchRequest) -> [NSManagedObject]? {
+        var error: NSError? = nil
+        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
+    }
+
+    /**
+        Find first managed object
     
-    :param: entityName
-    :param: predicate
-    :param: sortDescriptors
+        :param: entityName
+        :param: predicate
+        :param: sortDescriptors
     
-    :returns: array of managed objects
+        :returns: array of managed objects
     */
     public class func findFirst(#entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> NSManagedObject? {
         var error: NSError? = nil
@@ -244,39 +234,57 @@ public extension NSManagedObject {
     }
     
     /**
-    Find managed objects with fetchRequest
+        Count managed objects
     
-    :param: fetchRequest
-    
-    :returns: array of managed objects
-    */
-    public class func find(#fetchRequest: NSFetchRequest) -> [NSManagedObject]? {
-        var error: NSError? = nil
-        return ActiveRecord.driver?.read(fetchRequest, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
-    }
-    
-    /**
-    Count managed objects
-    
-    :param: entityName
-    :param: predicate
-    
-    :returns: number of managed objects
+        :param: entityName
+        :param: predicate
+
+        :returns: number of managed objects
     */
     public class func count(#entityName: String, predicate: NSPredicate? = nil) -> Int {
         if let driver = ActiveRecord.driver {
             var error: NSError? = nil
             return driver.count(entityName, predicate: predicate, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
-        } else {
-            return 0;
         }
+        return 0
     }
+
+    // MARK: - Update
+
+    /**
+        Save the managed object context which this managed object lives in.
+    */
+    public func save() {
+        var error: NSError? = nil
+        ActiveRecord.driver?.save(self.managedObjectContext, error: &error)
+    }
+
+    // MARK: - Delete
+    
+    /**
+        Delete this object
+    */
+    public func delete() {
+        ActiveRecord.driver?.delete(object: self)
+    }
+
+    /**
+        Delete all managed objects using predicate
+
+        :param: entityName
+        :param: predicate
+    */
+    public class func delete(#entityName: String, predicate: NSPredicate) {
+        var error: NSError? = nil
+        ActiveRecord.driver?.delete(entityName: entityName, predicate: predicate, context: ActiveRecord.driver?.managedObjectContext(), error: &error)
+    }
+
 }
 
 public extension NSManagedObjectContext {
     
     /**
-    Save the managed object context
+        Save the managed object context
     */
     public func save() {
         var error: NSError? = nil
@@ -284,7 +292,7 @@ public extension NSManagedObjectContext {
     }
     
     /**
-    Save the managed object context
+        Save the managed object context
     */
     public class func save() {
         var error: NSError? = nil
@@ -292,11 +300,11 @@ public extension NSManagedObjectContext {
     }
 
     /**
-    Save the managed object context with error pointer paramter
+        Save the managed object context with error pointer paramter
     
-    :param: error error pointer parameter
+        :param: error error pointer parameter
     
-    :returns: true for success
+        :returns: true for success
     */
     public class func save(error: NSErrorPointer) -> Bool {
         if let driver =  ActiveRecord.driver {
@@ -306,22 +314,23 @@ public extension NSManagedObjectContext {
     }
 
     /**
-    Returns the managed object context which should be used (context associated to current Operation Queue or current Thread).
+        Returns the managed object context which should be used (context associated to current Operation Queue or current Thread).
     
-    :returns: the managed object context which should be used
+        :returns: the managed object context which should be used
     */
     public class func context() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.managedObjectContext()
     }
     
     /**
-    Returns the default managed object context (to be used in Main Queue)
+        Returns the default managed object context (to be used in Main Queue)
     
-    :returns: the default managed object context
+        :returns: the default managed object context
     */
     public class func mainContext() -> NSManagedObjectContext? {
         return ActiveRecord.driver?.mainContext()
     }
+
 }
 
 

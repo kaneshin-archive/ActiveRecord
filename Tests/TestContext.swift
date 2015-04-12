@@ -25,49 +25,18 @@ import Foundation
 import CoreData
 import ActiveRecord
 
-class TestContext : NSObject, Context {
+class TestContext : ARContext {
 
-    /// Main queue context
-
-    var defaultManagedObjectContext: NSManagedObjectContext? {
-        return self.lazyDefaultManagedObjectContext
+    override init() {
+        super.init()
+        self.persistentStoreCoordinator = self.lazyPersistentStoreCoordinator
     }
 
-    private lazy var lazyDefaultManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: .MainQueueConcurrencyType)
-        managedObjectContext.parentContext = self.writerManagedObjectContext
-        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
-        return managedObjectContext
-    }()
-    
-    /// Context for writing to the PersistentStore
-
-    var writerManagedObjectContext: NSManagedObjectContext? {
-        return self.lazyWriterManagedObjectContext
+    override var managedObjectModel: NSManagedObjectModel? {
+        return self.lazyManagedObjectModel
     }
 
-    private lazy var lazyWriterManagedObjectContext: NSManagedObjectContext? = {
-        let coordinator = self.persistentStoreCoordinator
-        if coordinator == nil {
-            return nil
-        }
-        var managedObjectContext = NSManagedObjectContext(concurrencyType: .PrivateQueueConcurrencyType)
-        managedObjectContext.persistentStoreCoordinator = coordinator
-        managedObjectContext.mergePolicy = NSOverwriteMergePolicy
-        return managedObjectContext
-    }()
-
-    /// PersistentStoreCoordinator
-
-    var persistentStoreCoordinator: NSPersistentStoreCoordinator? {
-        return self.lazyPersistentStoreCoordinator
-    }
-
-    lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
+    private lazy var lazyPersistentStoreCoordinator: NSPersistentStoreCoordinator? = {
         if let managedObjectModel = self.managedObjectModel {
             var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: managedObjectModel)
             var error: NSError? = nil
@@ -79,13 +48,7 @@ class TestContext : NSObject, Context {
         return nil;
     }()
 
-    /// ManagedObjectModel
-
-    var managedObjectModel: NSManagedObjectModel? {
-        return self.lazyManagedObjectModel
-    }
-
-    lazy var lazyManagedObjectModel: NSManagedObjectModel? = {
+    private lazy var lazyManagedObjectModel: NSManagedObjectModel? = {
         let testsBundle: NSBundle = NSBundle(forClass: self.dynamicType)
         let modelURL: NSURL? = testsBundle.URLForResource("ActiveRecordTests", withExtension: "momd")
         if let managedObjectModel = NSManagedObjectModel(contentsOfURL: modelURL!) {
@@ -94,10 +57,4 @@ class TestContext : NSObject, Context {
         return nil
     }()
 
-    /// Store URL
-
-    var storeURL: NSURL? {
-        return nil
-    }
-    
 }

@@ -28,8 +28,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    override class func initialize() {
+        ActiveRecord.setup(context: CustomizableContext())
+    }
+
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        ActiveRecord.setup(context: AppContext())
         return true
     }
 
