@@ -10,6 +10,7 @@
 		790BAE0819BC141300B10B2D /* ActiveRecord.h in Headers */ = {isa = PBXBuildFile; fileRef = 790BAE0719BC141300B10B2D /* ActiveRecord.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 790BAE1919BC14E500B10B2D /* ActiveRecord.swift */; };
 		791070A419D1315D00649AD7 /* Driver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 791070A319D1315D00649AD7 /* Driver.swift */; };
+		7980CB011ADB55B300E6EDBB /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7980CB001ADB55B300E6EDBB /* Session.swift */; };
 		798277CC1AD8149900ABA2E8 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798277CB1AD8149900ABA2E8 /* Log.swift */; };
 		798278041AD83FC500ABA2E8 /* TestContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278031AD83FC500ABA2E8 /* TestContext.swift */; };
 		798278061AD8454200ABA2E8 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 798278051AD8454200ABA2E8 /* Provider.swift */; };
@@ -37,10 +38,11 @@
 		790BAE0219BC141300B10B2D /* ActiveRecord.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ActiveRecord.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		790BAE0619BC141300B10B2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		790BAE0719BC141300B10B2D /* ActiveRecord.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActiveRecord.h; sourceTree = "<group>"; };
-		790BAE0D19BC141300B10B2D /* ActiveRecordTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ActiveRecordTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		790BAE0D19BC141300B10B2D /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		790BAE1019BC141300B10B2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		790BAE1919BC14E500B10B2D /* ActiveRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveRecord.swift; sourceTree = "<group>"; };
 		791070A319D1315D00649AD7 /* Driver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Driver.swift; sourceTree = "<group>"; };
+		7980CB001ADB55B300E6EDBB /* Session.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
 		798277CB1AD8149900ABA2E8 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		798278031AD83FC500ABA2E8 /* TestContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestContext.swift; sourceTree = "<group>"; };
 		798278051AD8454200ABA2E8 /* Provider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
@@ -85,7 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				790BAE0219BC141300B10B2D /* ActiveRecord.framework */,
-				790BAE0D19BC141300B10B2D /* ActiveRecordTests.xctest */,
+				790BAE0D19BC141300B10B2D /* Tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -96,6 +98,7 @@
 				790BAE0719BC141300B10B2D /* ActiveRecord.h */,
 				790BAE1919BC14E500B10B2D /* ActiveRecord.swift */,
 				798278081AD9029900ABA2E8 /* Context.swift */,
+				7980CB001ADB55B300E6EDBB /* Session.swift */,
 				7910709E19D1303B00649AD7 /* CoreData */,
 				798277CA1AD8145200ABA2E8 /* Utilities */,
 				790BAE0519BC141300B10B2D /* Supporting Files */,
@@ -207,7 +210,7 @@
 			);
 			name = Tests;
 			productName = ActiveRecordTests;
-			productReference = 790BAE0D19BC141300B10B2D /* ActiveRecordTests.xctest */;
+			productReference = 790BAE0D19BC141300B10B2D /* Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
@@ -269,6 +272,7 @@
 			files = (
 				798277CC1AD8149900ABA2E8 /* Log.swift in Sources */,
 				798278061AD8454200ABA2E8 /* Provider.swift in Sources */,
+				7980CB011ADB55B300E6EDBB /* Session.swift in Sources */,
 				791070A419D1315D00649AD7 /* Driver.swift in Sources */,
 				798278091AD9029900ABA2E8 /* Context.swift in Sources */,
 				790BAE1A19BC14E500B10B2D /* ActiveRecord.swift in Sources */,

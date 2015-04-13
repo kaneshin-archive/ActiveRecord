@@ -45,18 +45,14 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         }
         
         var event: Event?
-        ActiveRecord.saveWithBackgroundBlockWaitSave({ (save) -> Void in
-// uncomment to run in another background thread
-//            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), { () -> Void in
-
-                for i in 0...5 {
-                    let entity = self.fetchedResultsController.fetchRequest.entity
-                    var newEvent = Event.create(entityName: entity!.name!) as? Event
-                    newEvent!.timeStamp = NSDate()
-                    event = newEvent
-                }
-                save()
-//            })
+        ActiveRecord.saveWithBackgroundBlock({
+            // uncomment to run in another background thread
+            for i in 0...5 {
+                let entity = self.fetchedResultsController.fetchRequest.entity
+                var newEvent = Event.create(entityName: entity!.name!) as? Event
+                newEvent!.timeStamp = NSDate()
+                event = newEvent
+            }
         }, saveSuccess: { () -> Void in
             if let event = event {
                 var id = event.objectID
