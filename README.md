@@ -7,8 +7,6 @@ Easy way to operate for Core Data.
 
 The library is inspired by the active record pattern which is a kind of design pattern to operate database easily.
 
-----
-
 ## Requirements
 
 - Xcode 6.3
@@ -97,11 +95,21 @@ event.timeStamp = NSDate()
 event.save()
 
 // Read
-var events = Event.find(entityName: "Event)"
+var events = Event.find(entityName: "Event")
 
 // Delete
 events?.first?.delete()
 ```
+
+## ToDo
+
+- [ ]More ActiveRecord:
+
+```swift
+let session = ActiveRecord.Session()
+var events = session.where("id < ?", userId).limit(10, 20).find("Event")
+```
+
 
 ## License
 
